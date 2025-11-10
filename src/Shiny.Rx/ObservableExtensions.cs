@@ -1,65 +1,46 @@
-﻿using System;
-using System.ComponentModel;
-using System.Linq.Expressions;
-using System.Reactive;
-using System.Reactive.Concurrency;
+﻿using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Shiny.Reflection;
 
 namespace Shiny;
 
 
-public record ItemChanged<T>(
-    T Object,
-    string? PropertyName
-)
-{
-    public object? GetValue() 
-        => this.PropertyName == null ? null : this.Object!.GetValue(this.PropertyName);
-}
-
-
 public static class ObservableExtensions
 {
-    /// <summary>
-    /// Monitors an INPC object for property changes
-    /// </summary>
-    /// <typeparam name="TSender"></typeparam>
-    /// <typeparam name="TRet"></typeparam>
-    /// <param name="This"></param>
-    /// <param name="expression"></param>
-    /// <returns></returns>
-    public static IObservable<TRet?> WhenAnyProperty<TSender, TRet>(this TSender This, Expression<Func<TSender, TRet>> expression) where TSender : INotifyPropertyChanged
-    {
-        var p = This.GetPropertyInfo(expression);
-        return Observable
-            .FromEventPattern<PropertyChangedEventArgs>(This, nameof(INotifyPropertyChanged.PropertyChanged))
-            .StartWith(new EventPattern<PropertyChangedEventArgs>(This, new PropertyChangedEventArgs(p.Name)))
-            .Where(x => x.EventArgs.PropertyName == p.Name)
-            .Select(x =>
-            {
-                var value = (TRet?)p.GetValue(This);
-                return value;
-            });
-    }
-
-
-    /// <summary>
-    /// Notifies whenever a property changes within an INotifyPropertyChanged
-    /// </summary>
-    /// <typeparam name="TSender"></typeparam>
-    /// <param name="This"></param>
-    /// <returns></returns>
-    public static IObservable<ItemChanged<TSender>> WhenAnyProperty<TSender>(this TSender This) where TSender : INotifyPropertyChanged
-        => Observable
-            .FromEventPattern<PropertyChangedEventArgs>(This, nameof(INotifyPropertyChanged.PropertyChanged))
-            .Select(x => new ItemChanged<TSender>(This, x.EventArgs.PropertyName));
-
+    // /// <summary>
+    // /// Monitors an INPC object for property changes
+    // /// </summary>
+    // /// <typeparam name="TSender"></typeparam>
+    // /// <typeparam name="TRet"></typeparam>
+    // /// <param name="This"></param>
+    // /// <param name="expression"></param>
+    // /// <returns></returns>
+    // public static IObservable<TRet?> WhenAnyProperty<TSender, TRet>(this TSender This, Expression<Func<TSender, TRet>> expression) where TSender : INotifyPropertyChanged
+    // {
+    //     var p = This.GetPropertyInfo(expression);
+    //     return Observable
+    //         .FromEventPattern<PropertyChangedEventArgs>(This, nameof(INotifyPropertyChanged.PropertyChanged))
+    //         .StartWith(new EventPattern<PropertyChangedEventArgs>(This, new PropertyChangedEventArgs(p.Name)))
+    //         .Where(x => x.EventArgs.PropertyName == p.Name)
+    //         .Select(x =>
+    //         {
+    //             var value = (TRet?)p.GetValue(This);
+    //             return value;
+    //         });
+    // }
+    //
+    //
+    // /// <summary>
+    // /// Notifies whenever a property changes within an INotifyPropertyChanged
+    // /// </summary>
+    // /// <typeparam name="TSender"></typeparam>
+    // /// <param name="This"></param>
+    // /// <returns></returns>
+    // public static IObservable<ItemChanged<TSender>> WhenAnyProperty<TSender>(this TSender This) where TSender : INotifyPropertyChanged
+    //     => Observable
+    //         .FromEventPattern<PropertyChangedEventArgs>(This, nameof(INotifyPropertyChanged.PropertyChanged))
+    //         .Select(x => new ItemChanged<TSender>(This, x.EventArgs.PropertyName));
+    //
 
     /// <summary>
     /// Equivalent of switchMap in RXJS

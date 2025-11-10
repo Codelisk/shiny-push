@@ -8,6 +8,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Shiny.Core\Shiny.Core.csproj" />
         <ProjectReference Include="..\Shiny.BluetoothLE.Common\Shiny.BluetoothLE.Common.csproj" />
+        <ProjectReference Include="..\Shiny.Rx\Shiny.Rx.csproj" />
     </ItemGroup>
 
 </Project>

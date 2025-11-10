@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -9,7 +7,6 @@ using Android.OS;
 using AndroidX.Core.App;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Shiny.Hosting;
 
 namespace Shiny;
 
@@ -33,9 +30,9 @@ public abstract class ShinyAndroidForegroundService : Service
     protected NotificationCompat.Builder? Builder { get; private set; }
 
     protected virtual ForegroundService StartForegroundServiceType => ForegroundService.TypeNone;
-    protected T GetService<T>() => Host.GetService<T>()!;
-    protected IEnumerable<T> GetServices<T>() => Host.ServiceProvider.GetServices<T>();
-    protected CompositeDisposable? DestroyWith { get; private set; }
+    protected T GetService<T>() => ShinyHost.ServiceProvider.GetService<T>()!;
+    protected IEnumerable<T> GetServices<T>() => ShinyHost.ServiceProvider.GetServices<T>();
+    // protected CompositeDisposable? DestroyWith { get; private set; }
     protected NotificationManagerCompat? NotificationManager { get; private set; }
     protected bool StopWithTask { get; private set; }
 
@@ -43,10 +40,7 @@ public abstract class ShinyAndroidForegroundService : Service
     protected abstract void OnStop();
 
     ILogger? logger;
-    protected ILogger Logger => this.logger ??= Host.Current.Logging.CreateLogger(this.GetType()!);
-
-    AndroidPlatform? platform;
-    protected AndroidPlatform Platform => this.platform ??= this.GetService<AndroidPlatform>();
+    protected ILogger Logger => this.logger ??= ShinyHost.LoggingFactory.CreateLogger(this.GetType()!);
 
 
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
@@ -54,14 +48,15 @@ public abstract class ShinyAndroidForegroundService : Service
         this.Logger.LogDebug($"Foreground Service OnStartCommand - Action: {intent?.Action} - Notification ID: {this.NotificationId}");
         switch (intent?.Action)
         {
-            case AndroidPlatform.ActionServiceStart:
-                this.StopWithTask = intent.GetBooleanExtra(AndroidPlatform.IntentActionStopWithTask, false);
-                this.Start(intent);
-                break;
-
-            case AndroidPlatform.ActionServiceStop:
-                this.Stop();
-                break;
+            //TODO
+            // case AndroidPlatform.ActionServiceStart:
+            //     this.StopWithTask = intent.GetBooleanExtra(AndroidPlatform.IntentActionStopWithTask, false);
+            //     this.Start(intent);
+            //     break;
+            //
+            // case AndroidPlatform.ActionServiceStop:
+            //     this.Stop();
+            //     break;
 
             default:
                 this.Logger.LogDebug($"Invalid Intent Action - {intent?.Action}");
@@ -83,8 +78,9 @@ public abstract class ShinyAndroidForegroundService : Service
 
     protected virtual void Start(Intent? intent)
     {
-        this.NotificationManager = NotificationManagerCompat.From(this.Platform.AppContext);
-        this.DestroyWith = new CompositeDisposable();
+        
+        //this.NotificationManager = NotificationManagerCompat.From(this.Platform.AppContext);
+        // this.DestroyWith = new CompositeDisposable();
 
         this.EnsureChannel();
         this.Builder = this.CreateNotificationBuilder();
@@ -103,8 +99,8 @@ public abstract class ShinyAndroidForegroundService : Service
     protected void Stop()
     {
         this.Logger.LogDebug($"Calling for foreground service stop.  Notification ID: {this.NotificationId}");
-        this.DestroyWith?.Dispose();
-        this.DestroyWith = null;
+        // this.DestroyWith?.Dispose();
+        // this.DestroyWith = null;
 
         ServiceCompat.StopForeground(this, ServiceCompat.StopForegroundRemove);
         this.StopSelf();
@@ -131,8 +127,8 @@ public abstract class ShinyAndroidForegroundService : Service
 
     protected virtual NotificationCompat.Builder CreateNotificationBuilder()
     {
-        var build = new NotificationCompat.Builder(this.Platform.AppContext, NotificationChannelId)
-            .SetSmallIcon(this.Platform.GetNotificationIconResource())
+        var build = new NotificationCompat.Builder(AndroidShinyHost.AppContext, NotificationChannelId)
+            // TODO: .SetSmallIcon(this.Platform.GetNotificationIconResource())
             .SetForegroundServiceBehavior((int)NotificationForegroundService.Immediate)
             .SetOngoing(true)
             .SetOnlyAlertOnce(true)

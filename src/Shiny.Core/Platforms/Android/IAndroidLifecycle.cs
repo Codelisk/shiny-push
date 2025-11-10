@@ -3,7 +3,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 
-namespace Shiny.Hosting;
+namespace Shiny;
 
 
 public interface IAndroidLifecycle

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Foundation;
 using UIKit;
 using UserNotifications;
 
-namespace Shiny.Hosting;
+namespace Shiny;
 
 
 public interface IIosLifecycle

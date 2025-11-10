@@ -1,10 +1,7 @@
-﻿using System;
-using AndroidX.Core.App;
-
-namespace Shiny;
+﻿namespace Shiny;
 
 
 public interface IAndroidForegroundServiceDelegate
 {
-    void Configure(NotificationCompat.Builder builder);
+    void Configure(AndroidX.Core.App.NotificationCompat.Builder builder);
 }
