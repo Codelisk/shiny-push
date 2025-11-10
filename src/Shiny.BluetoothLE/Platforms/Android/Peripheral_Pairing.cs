@@ -18,7 +18,7 @@ public partial class Peripheral : ICanPairPeripherals
         }
         else
         {
-            sub = this.manager
+            sub = manager
                 .PeripheralIntents
                 .Where(x => x.Peripheral.Equals(this))
                 .Select(x => x.Intent)
@@ -40,7 +40,7 @@ public partial class Peripheral : ICanPairPeripherals
                             break;
 
                         case BluetoothDevice.ActionPairingRequest:
-                            if (!pin.IsEmpty())
+                            if (!String.IsNullOrWhiteSpace(pin))
                             {
                                 var bytes = Encoding.UTF8.GetBytes(pin!);
                                 if (!this.Native.SetPin(bytes))

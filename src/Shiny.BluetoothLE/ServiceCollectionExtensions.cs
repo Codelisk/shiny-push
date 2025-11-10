@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if PLATFORM
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Shiny.BluetoothLE;
@@ -25,11 +26,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddBluetoothLE(this IServiceCollection services, Type? delegateType = null)
     {       
 #endif
-        if (!services.HasImplementation<BleManager>())
-            services.AddShinyService<BleManager>();
-
-        if (delegateType != null)
-            services.AddShinyService(delegateType);
+        // TODO
+        // if (!services.HasImplementation<BleManager>())
+        //     services.AddShinyService<BleManager>();
+        //
+        // if (delegateType != null)
+        //     services.AddShinyService(delegateType);
 
         services.TryAddSingleton<IOperationQueue, SemaphoreOperationQueue>();
         return services;
@@ -52,3 +54,4 @@ public static class ServiceCollectionExtensions
         => services.AddBluetoothLE(typeof(TCentralDelegate));
 #endif
 }
+#endif

@@ -20,32 +20,36 @@
     <File Path="version.json" />
   </Folder>
   <Folder Name="/libs/">
-    <Project Path="src\Shiny.Beacons\Shiny.Beacons.csproj" />
-    <Project Path="src\Shiny.BluetoothLE.Common\Shiny.BluetoothLE.Common.csproj" />
-    <Project Path="src\Shiny.BluetoothLE.Hosting\Shiny.BluetoothLE.Hosting.csproj" />
     <Project Path="src\Shiny.BluetoothLE\Shiny.BluetoothLE.csproj" />
     <Project Path="src\Shiny.Core\Shiny.Core.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Extensions.Configuration\Shiny.Extensions.Configuration.csproj" />
     <Project Path="src\Shiny.Hosting.Maui\Shiny.Hosting.Maui.csproj" />
     <Project Path="src\Shiny.Hosting.Native\Shiny.Hosting.Native.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Jobs\Shiny.Jobs.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Locations\Shiny.Locations.csproj" />
-    <Project Path="src\Shiny.Logging.Sqlite\Shiny.Logging.Sqlite.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Net.Http\Shiny.Net.Http.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Notifications\Shiny.Notifications.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Push.AzureNotificationHubs\Shiny.Push.AzureNotificationHubs.csproj" />
-    <Project Path="src\Shiny.Push\Shiny.Push.csproj" Type="Classic C#" />
     <Project Path="src\Shiny.Rx\Shiny.Rx.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Support.DeviceMonitoring.Razor\Shiny.Support.DeviceMonitoring.Razor.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Support.DeviceMonitoring\Shiny.Support.DeviceMonitoring.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Support.Locations\Shiny.Support.Locations.csproj" Type="Classic C#" />
-    <Project Path="src\Shiny.Support.Repositories\Shiny.Support.Repositories.csproj" />
     <File Path="src\Directory.build.props" />
     <File Path="src\Directory.build.targets" />
     <File Path="src\nuget.png" />
     <File Path="src\nuget.txt" />
     <File Path="version.json" />
     <File Path="src\Directory.packages.props" />
+  </Folder>
+  <Folder Name="/libs/Ported/">
+    <Project Path="src\Shiny.BluetoothLE.Common\Shiny.BluetoothLE.Common.csproj" />
+    <Project Path="src\Shiny.Extensions.Configuration\Shiny.Extensions.Configuration.csproj" />
+    <Project Path="src\Shiny.Logging.Sqlite\Shiny.Logging.Sqlite.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/libs/To Port/">
+    <Project Path="src\Shiny.Beacons\Shiny.Beacons.csproj" />
+    <Project Path="src\Shiny.BluetoothLE.Hosting\Shiny.BluetoothLE.Hosting.csproj" />
+    <Project Path="src\Shiny.Jobs\Shiny.Jobs.csproj" Type="Classic C#" />
+    <Project Path="src\Shiny.Locations\Shiny.Locations.csproj" />
+    <Project Path="src\Shiny.Net.Http\Shiny.Net.Http.csproj" Type="Classic C#" />
+    <Project Path="src\Shiny.Notifications\Shiny.Notifications.csproj" Type="Classic C#" />
+    <Project Path="src\Shiny.Push.AzureNotificationHubs\Shiny.Push.AzureNotificationHubs.csproj" />
+    <Project Path="src\Shiny.Push\Shiny.Push.csproj" Type="Classic C#" />
+    <Project Path="src\Shiny.Support.DeviceMonitoring.Razor\Shiny.Support.DeviceMonitoring.Razor.csproj" Type="Classic C#" />
+    <Project Path="src\Shiny.Support.DeviceMonitoring\Shiny.Support.DeviceMonitoring.csproj" Type="Classic C#" />
+    <Project Path="src\Shiny.Support.Locations\Shiny.Support.Locations.csproj" Type="Classic C#" />
+    <Project Path="src\Shiny.Support.Repositories\Shiny.Support.Repositories.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples\Sample.Api\Sample.Api.csproj" Type="Classic C#" />

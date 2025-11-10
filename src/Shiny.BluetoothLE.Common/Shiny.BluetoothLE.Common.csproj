@@ -3,10 +3,12 @@
     <PropertyGroup>
         <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
         <Description>Shiny BluetoothLE - Common components for Hosting and Client</Description>
+        <RootNamespace>Shiny.BluetoothLE</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Shiny.Core\Shiny.Core.csproj" />
+        <ProjectReference Include="..\Shiny.Rx\Shiny.Rx.csproj" />
     </ItemGroup>
 
 </Project>

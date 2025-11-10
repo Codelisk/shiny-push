@@ -10,29 +10,13 @@ using Shiny.BluetoothLE.Intrastructure;
 namespace Shiny.BluetoothLE;
 
 
-public partial class Peripheral : BluetoothGattCallback, IPeripheral
+public partial class Peripheral(
+    BleManager manager,
+    BluetoothDevice native,
+    IOperationQueue operations,
+    ILogger<IPeripheral> logger
+) : BluetoothGattCallback, IPeripheral
 {
-    readonly AndroidPlatform platform;
-    readonly BleManager manager;
-    readonly IOperationQueue operations;
-    readonly ILogger logger;
-
-
-    public Peripheral(
-        BleManager manager,
-        AndroidPlatform platform,
-        BluetoothDevice native,
-        IOperationQueue operations,
-        ILogger<IPeripheral> logger
-    )
-    {
-        this.manager = manager;
-        this.platform = platform;
-        this.Native = native;
-        this.operations = operations;
-        this.logger = logger;
-    }
-
     protected static BleOperationException ToException(string message, GattStatus status) =>
         new (message, (int)status);
 
@@ -51,7 +35,7 @@ public partial class Peripheral : BluetoothGattCallback, IPeripheral
             var status = ConnectionState.Disconnected;
             if (this.Gatt != null)
             {
-                status = this.manager
+                status = manager
                     .Native
                     .GetConnectionState(this.Native, ProfileType.Gatt)
                     .ToStatus();
@@ -74,7 +58,7 @@ public partial class Peripheral : BluetoothGattCallback, IPeripheral
         }
         catch (Exception ex)
         {
-            this.logger.LogWarning(ex, "BLE Peripheral did not cleanly disconnect");
+            logger.LogWarning(ex, "BLE Peripheral did not cleanly disconnect");
         }
         this.connSubj.OnNext(ConnectionState.Disconnected);
     }
@@ -93,7 +77,7 @@ public partial class Peripheral : BluetoothGattCallback, IPeripheral
                 cfg = new AndroidConnectionConfig(config.AutoConnect);
 
             this.Gatt = this.Native.ConnectGatt(
-                this.platform.AppContext,
+                AndroidShinyHost.AppContext,
                 config?.AutoConnect ?? true,
                 this,
                 BluetoothTransports.Le
@@ -108,12 +92,12 @@ public partial class Peripheral : BluetoothGattCallback, IPeripheral
         catch (BleException ex)
         {
             this.connFailSubj?.OnNext(ex);
-            this.logger.LogWarning(ex, "Failed to connect");
+            logger.LogWarning(ex, "Failed to connect");
         }
         catch (Exception ex)
         {
             this.connFailSubj?.OnNext(new("Failed to connect", ex));
-            this.logger.LogWarning(ex, "Failed to connect");
+            logger.LogWarning(ex, "Failed to connect");
         }
     }
 
@@ -121,7 +105,7 @@ public partial class Peripheral : BluetoothGattCallback, IPeripheral
     Subject<BleException>? connFailSubj;
     public IObservable<BleException> WhenConnectionFailed() => this.connFailSubj ??= new();
 
-    public IObservable<int> ReadRssi() => this.operations.QueueToObservable(async ct =>
+    public IObservable<int> ReadRssi() => operations.QueueToObservable(async ct =>
     {
         this.AssertConnection();
 
@@ -149,7 +133,7 @@ public partial class Peripheral : BluetoothGattCallback, IPeripheral
     public override void OnConnectionStateChange(BluetoothGatt? gatt, GattStatus status, ProfileState newState)
     {
         // the BleDelegate is fired by the BleManager.Start under ShinyBleBroadcastReceiver
-        this.logger.ConnectionStateChange(status, newState);
+        logger.ConnectionStateChange(status, newState);
 
         if (newState == ProfileState.Disconnected)
         {

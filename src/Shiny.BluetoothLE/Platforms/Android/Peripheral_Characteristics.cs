@@ -31,7 +31,7 @@ public partial class Peripheral
     
     public IObservable<BleCharacteristicResult> ReadCharacteristic(string serviceUuid, string characteristicUuid) => this
         .GetNativeCharacteristic(serviceUuid, characteristicUuid)
-        .Select(ch => this.operations.QueueToObservable(async ct => 
+        .Select(ch => operations.QueueToObservable(async ct => 
         {
             this.charEventSubj ??= new();
 
@@ -70,24 +70,24 @@ public partial class Peripheral
             var obs = Observable
                 .Create<BleCharacteristicResult>(ob =>
                 {
-                    this.logger.LogDebug($"Hooking Characteristic Notification: {serviceUuid} / {characteristicUuid}");
+                    logger.LogDebug($"Hooking Characteristic Notification: {serviceUuid} / {characteristicUuid}");
                     BluetoothGattCharacteristic? characteristic = null;
 
                     var sub = this.WhenConnected()
                         .Select(_ =>
                         {
-                            this.logger.LogDebug($"Connection Detected - Attempting to hook characteristic: {serviceUuid} / {characteristicUuid}");
+                            logger.LogDebug($"Connection Detected - Attempting to hook characteristic: {serviceUuid} / {characteristicUuid}");
                             return this.GetNativeCharacteristic(serviceUuid, characteristicUuid);
                         })
                         .Switch()
-                        .Select(ch => this.operations.QueueToObservable(async ct =>
+                        .Select(ch => operations.QueueToObservable(async ct =>
                         {
                             characteristic = ch;
 
                             this.FromNative(ch).AssertNotify();
-                            this.logger.LogDebug("Char InstanceID: " + ch.InstanceId);
+                            logger.LogDebug("Char InstanceID: " + ch.InstanceId);
 
-                            this.logger.HookedCharacteristic(serviceUuid, characteristicUuid, "Subscribing");
+                            logger.HookedCharacteristic(serviceUuid, characteristicUuid, "Subscribing");
 
                             if (!this.Gatt!.SetCharacteristicNotification(ch, true))
                                 throw new BleException("Failed to set characteristic notification value");
@@ -99,7 +99,7 @@ public partial class Peripheral
 
                             ct.ThrowIfCancellationRequested();
                             await this.WriteDescriptor(nativeDescriptor, notifyBytes, ct).ConfigureAwait(false);
-                            this.logger.HookedCharacteristic(serviceUuid, characteristicUuid, "Subscribed");
+                            logger.HookedCharacteristic(serviceUuid, characteristicUuid, "Subscribed");
 
                             this.AddNotify(ch);
                             this.charSubSubj.OnNext(this.FromNative(ch));
@@ -182,26 +182,26 @@ public partial class Peripheral
                     .Timeout(TimeSpan.FromSeconds(3))
                     .Subscribe(
                         _ => { },
-                        ex => this.logger.DisableNotificationError(ex, serviceUuid, characteristicUuid)
+                        ex => logger.DisableNotificationError(ex, serviceUuid, characteristicUuid)
                     );
 
                 if (!this.Gatt!.SetCharacteristicNotification(ch, false))
-                    this.logger.DisableNotificationError(null!, serviceUuid, characteristicUuid);
+                    logger.DisableNotificationError(null!, serviceUuid, characteristicUuid);
                 
                 this.charSubSubj?.OnNext(this.FromNative(ch));
             }
-            this.logger.LogDebug($"Cleaned up characteristic subscription: {serviceUuid} / {characteristicUuid}");
+            logger.LogDebug($"Cleaned up characteristic subscription: {serviceUuid} / {characteristicUuid}");
         }
         catch (Exception ex)
         {
-            this.logger.DisableNotificationError(ex, serviceUuid, characteristicUuid);
+            logger.DisableNotificationError(ex, serviceUuid, characteristicUuid);
         }
     }
 
 
     public IObservable<BleCharacteristicResult> WriteCharacteristic(string serviceUuid, string characteristicUuid, byte[] data, bool withResponse = true) => this
         .GetNativeCharacteristic(serviceUuid, characteristicUuid)
-        .Select(ch => this.operations.QueueToObservable(async ct =>
+        .Select(ch => operations.QueueToObservable(async ct =>
         {
             this.FromNative(ch).AssertWrite(withResponse);
 
@@ -216,14 +216,7 @@ public partial class Peripheral
             if (ch.Properties.HasFlag(GattProperty.SignedWrite) && this.Native.BondState == Bond.Bonded)
                 ch.WriteType |= GattWriteType.Signed;
 
-#if XAMARIN
-            if (!ch.SetValue(data))
-                throw new BleException("Could not set value of characteristic: " + characteristicUuid);
-
-            if (!this.Gatt!.WriteCharacteristic(ch))
-                throw new BleException("Failed to write to characteristic: " + characteristicUuid);
-#else
-            if (OperatingSystemShim.IsAndroidVersionAtLeast(33))
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
             {
                 this.Gatt!.WriteCharacteristic(ch, data, (int)ch.WriteType);
             }
@@ -235,7 +228,7 @@ public partial class Peripheral
                 if (!this.Gatt!.WriteCharacteristic(ch))
                     throw new BleException("Failed to write to characteristic: " + characteristicUuid);
             }
-#endif
+
             var result = await task.ConfigureAwait(false);
             if (result.Status != GattStatus.Success)
                 throw ToException($"Failed to write to characteristic: {characteristicUuid}", result.Status);
@@ -334,14 +327,14 @@ public partial class Peripheral
     Subject<(BluetoothGattCharacteristic Char, GattStatus Status, bool IsWrite)>? charEventSubj;
     public override void OnCharacteristicRead(BluetoothGatt? gatt, BluetoothGattCharacteristic? characteristic, GattStatus status)
     {
-        this.logger.CharacteristicEvent(characteristic, status);
+        logger.CharacteristicEvent(characteristic, status);
         this.charEventSubj?.OnNext((characteristic!, status, false));
     }
 
 
     public override void OnCharacteristicWrite(BluetoothGatt? gatt, BluetoothGattCharacteristic? characteristic, GattStatus status)
     {
-        this.logger.CharacteristicEvent(characteristic, status);
+        logger.CharacteristicEvent(characteristic, status);
         this.charEventSubj?.OnNext((characteristic!, status, true));
     }
 
@@ -349,7 +342,7 @@ public partial class Peripheral
     Subject<BluetoothGattCharacteristic>? notifySubj = new();
     public override void OnCharacteristicChanged(BluetoothGatt? gatt, BluetoothGattCharacteristic? characteristic)
     {
-        this.logger.CharacteristicEvent(characteristic, null);
+        logger.CharacteristicEvent(characteristic, null);
         this.notifySubj?.OnNext(characteristic!);
     }
 }

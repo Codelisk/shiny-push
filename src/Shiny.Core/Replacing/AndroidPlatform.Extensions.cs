@@ -64,31 +64,10 @@
 //     }
 //
 //
-//     public T GetSystemService<T>(string key) where T : Java.Lang.Object
-//         => (T)this.AppContext.GetSystemService(key);
+
 //
 //
-//     public void RegisterBroadcastReceiver<T>(bool exported, params string[] actions) where T : BroadcastReceiver, new()
-//     {
-//         var receiver = new T();
-//         var filter = new IntentFilter();
-//         foreach (var e in actions)
-//             filter.AddAction(e);
-//
-// #if ANDROID34_0_OR_GREATER
-//         if (OperatingSystemShim.IsAndroidVersionAtLeast(34))
-//         {
-//             var flags = exported ? ReceiverFlags.Exported : ReceiverFlags.NotExported;
-//             this.AppContext.RegisterReceiver(receiver, filter, flags);
-//         }
-//         else
-//         {
-//             this.AppContext.RegisterReceiver(new T(), filter);
-//         }
-// #else
-//         this.AppContext.RegisterReceiver(new T(), filter);
-// #endif
-//     }
+
 //
 //
 //     public bool IsInManifest(string androidPermission)

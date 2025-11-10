@@ -36,15 +36,11 @@ public class SharedPreferencesConfigurationProvider : ConfigurationProvider
 
     protected virtual void DoLoad()
     {
-        using (var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context))
+        using var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+        if (prefs?.All != null)
         {
-            if (prefs?.All != null)
-            {
-                foreach (var pair in prefs.All)
-                {
-                    this.Data.Add(pair.Key, pair.Value.ToString());
-                }
-            }
+            foreach (var pair in prefs.All)
+                this.Data.Add(pair.Key, pair.Value.ToString());
         }
     }
 }

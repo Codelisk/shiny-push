@@ -18,40 +18,22 @@ using SR = Android.Bluetooth.LE.ScanResult;
 namespace Shiny.BluetoothLE;
 
 
-public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
+public partial class BleManager(
+    IServiceProvider services,
+    IOperationQueue operations,
+    ILogger<IBleManager> logger,
+    ILogger<IPeripheral> peripheralLogger
+) : ScanCallback, IBleManager, IShinyStartupTask
 {
     public const string BroadcastReceiverName = "org.shiny.bluetoothle.ShinyBleCentralBroadcastReceiver";
-
-    readonly AndroidPlatform platform;    
-    readonly IServiceProvider services;
-    readonly IOperationQueue operations;
-    readonly ILogger<IBleManager> logger;
-    readonly ILogger<IPeripheral> peripheralLogger;
-
-    public BleManager(
-        AndroidPlatform platform,
-        IServiceProvider services,
-        IOperationQueue operations,
-        ILogger<IBleManager> logger,
-        ILogger<IPeripheral> peripheralLogger
-    )
-    {
-        this.platform = platform;
-        this.services = services;
-        this.operations = operations;
-        this.logger = logger;
-        this.peripheralLogger = peripheralLogger;
-
-        this.Native = platform.GetSystemService<BluetoothManager>(Context.BluetoothService);
-    }
-
 
     public AccessState CurrentAccess
     {
         get
         {
             var perms = GetPlatformPermissions();
-            var states = perms.Select(this.platform.GetCurrentPermissionStatus);
+            var states = perms.Select(AndroidShinyHost.GetCurrentPermissionStatus).ToList();
+            
             if (states.Any(x => x == AccessState.Denied))
                 return AccessState.Denied;
 
@@ -63,7 +45,9 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
     }
 
     public bool IsScanning { get; private set; }
-    public BluetoothManager Native { get; }
+
+    BluetoothManager? native;
+    public BluetoothManager Native => this.native ??= AndroidShinyHost.GetSystemService<BluetoothManager>(Context.BluetoothService);
 
 
     public IObservable<(Peripheral Peripheral, Intent Intent)> PeripheralIntents => this.peripheralEventSubj;
@@ -73,7 +57,7 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
     static T? GetParcel<T>(Intent intent, string name) where T : Java.Lang.Object
     {
         Java.Lang.Object? result;
-        if (OperatingSystemShim.IsAndroidVersionAtLeast(33))
+        if (OperatingSystem.IsAndroidVersionAtLeast(33))
         {
             var javaCls = Java.Lang.Class.FromType(typeof(T));
             if (javaCls == null)
@@ -104,10 +88,10 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
                     case BluetoothDevice.ActionAclConnected:
                     case BluetoothDevice.ActionAclDisconnected:
                         // bg state
-                        await this.services
+                        await services
                             .RunDelegates<IBleDelegate>(
                                 x => x.OnPeripheralStateChanged(peripheral),
-                                this.logger
+                                logger
                             )
                             .ConfigureAwait(false);
                         break;
@@ -125,7 +109,7 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
             }
         };
 
-        this.platform.RegisterBroadcastReceiver<ShinyBleBroadcastReceiver>(
+        AndroidShinyHost.RegisterBroadcastReceiver<ShinyBleBroadcastReceiver>(
             true,
             BluetoothDevice.ActionNameChanged,
             BluetoothDevice.ActionBondStateChanged,
@@ -146,16 +130,16 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
                     ? AccessState.Available
                     : AccessState.Disabled;
 
-                await this.services
+                await services
                     .RunDelegates<IBleDelegate>(
                         del => del.OnAdapterStateChanged(status),
-                        this.logger
+                        logger
                     )
                     .ConfigureAwait(false);
             }
         };
 
-        this.platform.RegisterBroadcastReceiver<ShinyBleAdapterStateBroadcastReceiver>(
+        AndroidShinyHost.RegisterBroadcastReceiver<ShinyBleAdapterStateBroadcastReceiver>(
             true,
             BluetoothAdapter.ActionStateChanged,
             Intent.ActionBootCompleted
@@ -166,17 +150,19 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
     {
         var versionPermissions = GetPlatformPermissions();
 
-        if (!versionPermissions.All(x => this.platform.IsInManifest(x)))
-            return AccessState.NotSetup;
+        // TODO
+        // if (!versionPermissions.All(x => this.platform.IsInManifest(x)))
+        //     return AccessState.NotSetup;
 
-        var results = await this.platform
-            .RequestPermissions(versionPermissions)
-            .ToTask(ct)
-            .ConfigureAwait(false);
-
-        return results.IsSuccess()
-            ? this.Native.GetAccessState() // now look at the actual device state
-            : AccessState.Denied;
+        // var results = await AndroidShinyHost
+        //     .RequestPermissions(versionPermissions)
+        //     .ToTask(ct)
+        //     .ConfigureAwait(false);
+        //
+        // return results.IsSuccess()
+        //     ? this.Native.GetAccessState() // now look at the actual device state
+        //     : AccessState.Denied;
+        return AccessState.Available;
     });
 
 
@@ -244,7 +230,7 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
     readonly ConcurrentDictionary<string, Peripheral> peripherals = new();
     Peripheral GetPeripheral(BluetoothDevice device) => this.peripherals.GetOrAdd(
         device.Address!,
-        x => new Peripheral(this, this.platform, device, this.operations, this.peripheralLogger)
+        _ => new Peripheral(this, device, operations, peripheralLogger)
     );
 
 
@@ -286,7 +272,7 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
         if (cfg.UseScanBatching && this.Native.Adapter!.IsOffloadedScanBatchingSupported)
             builder.SetReportDelay(100);
 
-        if (OperatingSystemShim.IsAndroidVersionAtLeast(26))
+        if (OperatingSystem.IsAndroidVersionAtLeast(26))
             builder.SetLegacy(false);
         
         this.Native.Adapter!.BluetoothLeScanner!.StartScan(
@@ -306,20 +292,18 @@ public partial class BleManager : ScanCallback, IBleManager, IShinyStartupTask
 
     static string[] GetPlatformPermissions()
     {
-        if (OperatingSystemShim.IsAndroidVersionAtLeast(31))
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
         {
-            return new[]
-            {
+            return [
                 Manifest.Permission.BluetoothScan,
                 Manifest.Permission.BluetoothConnect
-            };
+            ];
         }
-        return new[]
-        {
+        return [
             Manifest.Permission.Bluetooth,
             Manifest.Permission.BluetoothAdmin,
             Manifest.Permission.AccessFineLocation
-        };
+        ];
     }
 
 

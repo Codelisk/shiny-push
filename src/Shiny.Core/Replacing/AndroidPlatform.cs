@@ -50,40 +50,6 @@
 //     }
 //
 //
-//     public AccessState GetCurrentPermissionStatus(string androidPermission)
-//     {
-//         var self = ContextCompat.CheckSelfPermission(this.AppContext, androidPermission);
-//         if (self == Permission.Granted)
-//             return AccessState.Available;
-//
-//         if (!this.HasRequestedPermission(androidPermission))
-//             return AccessState.Unknown;
-//
-//         //var showRequest = ActivityCompat.ShouldShowRequestPermissionRationale(this.CurrentActivity!, androidPermission);
-//         //if (showRequest)
-//         //    return AccessState.Unknown;
-//
-//         return AccessState.Denied;
-//     }
-//
-//     // lifecycle hooks
-//     public void Handle(Activity activity, int requestCode, string[] permissions, Permission[] grantResults)
-//         => this.permissionSubject.OnNext(new PermissionRequestResult(requestCode, permissions, grantResults));
-//
-//     public void Handle(Activity activity, int requestCode, Result resultCode, Intent data)
-//         => this.activityResultSubject.OnNext((requestCode, resultCode, data));
-//
-//
-//     public Application AppContext { get; }
-//     public DirectoryInfo AppData { get; }
-//     public DirectoryInfo Cache { get; }
-//     public DirectoryInfo Public { get; }
-//
-//
-//     public Activity? CurrentActivity => activityLifecycle.Activity;
-//     public IObservable<ActivityChanged> WhenActivityChanged() => activityLifecycle.ActivitySubject;
-//
-//
 //     readonly Handler handler = new Handler(Looper.MainLooper);
 //     public void InvokeOnMainThread(Action action)
 //     {
@@ -157,13 +123,6 @@
 //         this.AppContext.StartService(intent);
 //         //this.AppContext.StopService(intent);
 //     }
-//
-//
-//     //public AccessState GetCurrentAccessState(string androidPermission)
-//     //{
-//     //    var result = ContextCompat.CheckSelfPermission(this.AppContext, androidPermission);
-//     //    return result == Permission.Granted ? AccessState.Available : AccessState.Denied;
-//     //}
 //
 //     public int GetDrawableByName(string name) => this
 //         .AppContext

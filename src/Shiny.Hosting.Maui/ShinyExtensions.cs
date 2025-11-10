@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.LifecycleEvents;
-using Shiny.Hosting;
-using Shiny.Infrastructure;
-using Shiny.Platforms.Apple;
 
 namespace Shiny;
 

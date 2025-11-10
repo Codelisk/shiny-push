@@ -13,19 +13,8 @@ using Windows.Foundation;
 namespace Shiny.BluetoothLE;
 
 
-public partial class BleManager : IBleManager, IShinyStartupTask
+public partial class BleManager(IServiceProvider services, ILogger<IBleManager> logger) : IBleManager, IShinyStartupTask
 {
-    readonly IServiceProvider services;
-    readonly ILogger logger;
-
-
-    public BleManager(IServiceProvider services, ILogger<IBleManager> logger)
-    {
-        this.services = services;
-        this.logger = logger;
-    }
-
-
     public void Start()
     {
         var delegates = this.services.GetServices<IBleDelegate>().ToList();
@@ -38,17 +27,13 @@ public partial class BleManager : IBleManager, IShinyStartupTask
             .Subscribe(
                 radio =>
                 {
-
                     var handler = new TypedEventHandler<Radio, object>((sender, args) =>
                     {
                         var status = sender.GetAccessStatus();
                         delegates.RunDelegates(x => x.OnAdapterStateChanged(status), this.logger);
                     });
                 },
-                ex =>
-                {
-                    this.logger.LogError(ex, "Could not monitor radio");
-                }
+                ex => logger.LogError(ex, "Could not monitor radio");
             );
     }
 

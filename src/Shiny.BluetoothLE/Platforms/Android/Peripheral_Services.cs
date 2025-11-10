@@ -76,17 +76,17 @@ public partial class Peripheral
             var method = this.Gatt!.Class.GetMethod("refresh");
             if (method == null)
             {
-                this.logger.LogWarning("No internal refresh method found");
+                logger.LogWarning("No internal refresh method found");
             }
             else
             {
                 var result = (bool)method.Invoke(this.Gatt);
-                this.logger.LogInformation("Clear Internal Cache Refresh Result: " + result);
+                logger.LogInformation("Clear Internal Cache Refresh Result: " + result);
             }
         }
         catch (Exception ex)
         {
-            this.logger.LogWarning(ex, "Failed to clear internal device cache");
+            logger.LogWarning(ex, "Failed to clear internal device cache");
         }
     }
 

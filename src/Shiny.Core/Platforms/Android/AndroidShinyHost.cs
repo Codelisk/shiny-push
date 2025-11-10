@@ -4,6 +4,7 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using AndroidX.Core.Content;
 using Microsoft.Extensions.DependencyInjection;
 using Activity = Android.App.Activity;
 
@@ -12,22 +13,29 @@ namespace Shiny;
 
 public static class AndroidShinyHost
 {
-    //         var app = (Application)Application.Context;
-//         activityLifecycle ??= new(app);
-//         this.AppContext = app;
-//         this.AppData = new DirectoryInfo(this.AppContext.FilesDir.AbsolutePath);
-// TODO: need top activity
     public static void Init(Application app)
     {
         AppContext = app;
         AppData = new DirectoryInfo(app.FilesDir!.AbsolutePath);
+        
+        if (activityLifecycle == null) 
+        {
+            activityLifecycle = new AndroidActivityLifecycle();
+            app.RegisterActivityLifecycleCallbacks(activityLifecycle);
+            
+            // TODO: hook events - don't depend on 3rd party hooks
+        }
     }
 
+
+    static AndroidActivityLifecycle? activityLifecycle;
     
     // TODO: getter error if not initialized
     public static Application AppContext { get; private set; }
     public static DirectoryInfo AppData { get; private set; }
+    public static Activity? CurrentActivity => activityLifecycle?.Activity;
    
+    
     public static void OnActivityOnCreate(Activity activity, Bundle? savedInstanceState)
          => Execute<IAndroidLifecycle.IOnActivityOnCreate>(x => x.ActivityOnCreate(activity, savedInstanceState));
 
@@ -56,6 +64,45 @@ public static class AndroidShinyHost
          }
      }
      
+    public static T GetSystemService<T>(string key) where T : Java.Lang.Object
+        => (T)AppContext.GetSystemService(key);
+
+    
+    public static AccessState GetCurrentPermissionStatus(string androidPermission)
+     {
+         var self = ContextCompat.CheckSelfPermission(AppContext, androidPermission);
+         if (self == Permission.Granted)
+             return AccessState.Available;
+
+         // if (!this.HasRequestedPermission(androidPermission))
+         //     return AccessState.Unknown;
+
+         //var showRequest = ActivityCompat.ShouldShowRequestPermissionRationale(this.CurrentActivity!, androidPermission);
+         //if (showRequest)
+         //    return AccessState.Unknown;
+
+         return AccessState.Denied;
+     }
+
+
+    public static void RegisterBroadcastReceiver<T>(bool exported, params string[] actions) where T : BroadcastReceiver, new()
+    {
+        var receiver = new T();
+        var filter = new IntentFilter();
+        foreach (var e in actions)
+            filter.AddAction(e);
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(34))
+        {
+            var flags = exported ? ReceiverFlags.Exported : ReceiverFlags.NotExported;
+            AppContext.RegisterReceiver(receiver, filter, flags);
+        }
+        else
+        {
+            AppContext.RegisterReceiver(new T(), filter);
+        }
+    }
+
     //     public void Start()
 //     {
 //         // this is really only need for unit tests - it will passthrough under normal circumstances

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -14,9 +13,7 @@ namespace Shiny.BluetoothLE;
 public static class Extensions
 {
     public static bool IsConnected(this NSStream stream) =>
-        stream.Status == NSStreamStatus.Open ||
-        stream.Status == NSStreamStatus.Reading ||
-        stream.Status == NSStreamStatus.Writing;
+        stream.Status is NSStreamStatus.Open or NSStreamStatus.Reading or NSStreamStatus.Writing;
 
 
     public static IObservable<NSStreamEvent> WhenEvent(this NSStream stream, bool throwError = false) => Observable.Create<NSStreamEvent>(ob =>

@@ -131,9 +131,7 @@ public class BindingList<T> : ObservableCollection<T>, INotifyCollectionChanged<
         {
             base.ClearItems();
             foreach (var item in newItems)
-            {
                 base.InsertItem(this.Count, item);
-            }
         }
         finally
         {
