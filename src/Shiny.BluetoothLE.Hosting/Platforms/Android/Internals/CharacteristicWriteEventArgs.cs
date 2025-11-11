@@ -1,24 +1,17 @@
-using System;
 using Android.Bluetooth;
 
 
-namespace Shiny.BluetoothLE.Hosting.Internals
+namespace Shiny.BluetoothLE.Hosting.Internals;
+
+public class CharacteristicWriteEventArgs(
+    BluetoothGattCharacteristic characteristic,
+    BluetoothDevice device,
+    int requestId,
+    int offset,
+    bool preparedWrite,
+    bool responseNeeded,
+    byte[] value
+) : WriteRequestEventArgs(device, requestId, offset, preparedWrite, responseNeeded, value)
 {
-    public class CharacteristicWriteEventArgs : WriteRequestEventArgs
-    {
-        public CharacteristicWriteEventArgs(
-            BluetoothGattCharacteristic characteristic,
-            BluetoothDevice device,
-            int requestId,
-            int offset,
-            bool preparedWrite,
-            bool responseNeeded,
-            byte[] value) : base(device, requestId, offset, preparedWrite, responseNeeded, value)
-        {
-            this.Characteristic = characteristic;
-        }
-
-
-        public BluetoothGattCharacteristic Characteristic { get; }
-    }
+    public BluetoothGattCharacteristic Characteristic => characteristic;
 }

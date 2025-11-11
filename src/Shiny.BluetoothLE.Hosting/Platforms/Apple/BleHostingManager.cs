@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Reactive.Linq;
 using Foundation;
 using CoreBluetooth;
 using CoreLocation;
@@ -10,7 +9,7 @@ using CoreLocation;
 namespace Shiny.BluetoothLE.Hosting;
 
 
-public partial class BleHostingManager : IBleHostingManager
+public class BleHostingManager : IBleHostingManager
 {
     CBPeripheralManager manager;
     protected CBPeripheralManager Manager
@@ -259,18 +258,6 @@ public partial class BleHostingManager : IBleHostingManager
         }
     }
 
-#if XAMARIN
-    static AccessState ToStatus(CBPeripheralManagerState state) => state switch
-    {
-        CBPeripheralManagerState.PoweredOff => AccessState.Disabled,
-        CBPeripheralManagerState.Unauthorized => AccessState.Denied,
-        CBPeripheralManagerState.Unsupported => AccessState.NotSupported,
-        CBPeripheralManagerState.PoweredOn => AccessState.Available,
-        //  CBPeripheralManagerState.Resetting, Unknown
-        _ => AccessState.Unknown
-    };
-
-#else
     static AccessState ToStatus(CBManagerState state) => state switch
     {
         CBManagerState.PoweredOff => AccessState.Disabled,
@@ -280,5 +267,4 @@ public partial class BleHostingManager : IBleHostingManager
         //  CBPeripheralManagerState.Resetting, Unknown
         _ => AccessState.Unknown
     };
-#endif
 }

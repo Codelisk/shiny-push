@@ -5,15 +5,13 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Android.Bluetooth;
-using Java.Lang.Annotation;
 using Shiny.BluetoothLE.Hosting.Internals;
 
 namespace Shiny.BluetoothLE.Hosting;
 
 
-public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilder, IDisposable
+public class GattCharacteristic(GattServerContext context, string uuid) : IGattCharacteristic, IGattCharacteristicBuilder, IDisposable
 {
-    readonly GattServerContext context;
     readonly CompositeDisposable disposer = new();
     readonly Dictionary<string, IPeripheral> subscribers = new();
     Func<CharacteristicSubscription, Task>? onSubscribe;
@@ -21,39 +19,35 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
     Func<ReadRequest, Task<GattResult>>? onRead;
     GattProperty properties = 0;
     GattPermission permissions = 0;
-
-
-    public GattCharacteristic(GattServerContext context, string uuid)
-    {
-        this.context = context;
-        this.Uuid = uuid;
-    }
-
+    
 
     public BluetoothGattCharacteristic Native { get; private set; } = null!;
-    public string Uuid { get; }
+    public string Uuid => uuid;
     public CharacteristicProperties Properties => (CharacteristicProperties)(int)this.properties;
     public IReadOnlyList<IPeripheral> SubscribedCentrals
     {
         get
         {
             lock (this.subscribers)
-            {
                 return this.subscribers.Values.ToList();
-            }
         }
     }
 
 
     public Task Notify(byte[] data, params IPeripheral[] centrals)
     {
-        this.Native.SetValue(data);
         var sendTo = (centrals.OfType<Peripheral>() ?? this.SubscribedCentrals.OfType<Peripheral>()).ToArray();
-
-        foreach (var send in sendTo)
+        
+        if (OperatingSystem.IsAndroidVersionAtLeast(33))
         {
-            // TODO: exception on false?
-            this.context.Server.NotifyCharacteristicChanged(send.Native, this.Native, false);
+            foreach (var send in sendTo)
+                context.Server.NotifyCharacteristicChanged(send.Native, this.Native, false, data);
+        }
+        else
+        {
+            this.Native.SetValue(data);
+            foreach (var send in sendTo)
+                context.Server.NotifyCharacteristicChanged(send.Native, this.Native, false);
         }
         return Task.CompletedTask;
     }
@@ -139,7 +133,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
         );
         this.Native.AddDescriptor(ndesc);
 
-        this.context
+        context
             .DescriptorWrite
             .Where(x => x.Descriptor.Equals(ndesc))
             .Subscribe(async x =>
@@ -162,7 +156,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
                 }
                 if (respond && x.ResponseNeeded)
                 {
-                    this.context.Server.SendResponse(
+                    context.Server.SendResponse(
                         x.Device,
                         x.RequestId,
                         GattStatus.Success,
@@ -173,7 +167,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
             })
             .DisposedBy(this.disposer);
 
-        this.context
+        context
             .ConnectionStateChanged
             .Where(x => x.NewState == ProfileState.Disconnected)
             .Subscribe(async x =>
@@ -191,7 +185,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
         if (this.onRead == null)
             return;
 
-        this.context
+        context
             .CharacteristicRead
             .Where(x => x.Characteristic.Equals(this.Native))
             .Subscribe(async ch =>
@@ -200,7 +194,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
                 var request = new ReadRequest(this, peripheral, ch.Offset);
                 var result = await this.onRead(request).ConfigureAwait(false);
 
-                this.context.Server.SendResponse
+                context.Server.SendResponse
                 (
                     ch.Device,
                     ch.RequestId,
@@ -218,7 +212,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
         if (this.onWrite == null)
             return;
 
-        this.context
+        context
             .CharacteristicWrite
             .Where(x => x.Characteristic.Equals(this.Native))
             .Subscribe(async ch =>
@@ -234,7 +228,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
                     (status) =>
                     {
                         responded = true;
-                        this.context.Server.SendResponse(
+                        context.Server.SendResponse(
                             ch.Device,
                             ch.RequestId,
                             status.ToNative(),
@@ -246,7 +240,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
                 await this.onWrite(request).ConfigureAwait(false);
                 if (request.IsReplyNeeded && !responded)
                 {
-                    this.context.Server.SendResponse(
+                    context.Server.SendResponse(
                         ch.Device,
                         ch.RequestId,
                         GattStatus.Success,
@@ -261,7 +255,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
 
     void SetupMtuChanged()
     {
-        this.context
+        context
             .MtuChanged
             .Where(x => this.subscribers.ContainsKey(x.Device.Address!))
             .Subscribe(ch =>

@@ -22,9 +22,5 @@ public interface IBleHostingManager
     void RemoveService(string serviceUuid);
     void ClearServices();
 
-    bool IsRegisteredServicesAttached { get; }
-    Task AttachRegisteredServices();
-    void DetachRegisteredServices();
-
     IReadOnlyList<IGattService> Services { get; }
 }

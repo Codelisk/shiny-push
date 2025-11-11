@@ -6,32 +6,18 @@ using CoreBluetooth;
 namespace Shiny.BluetoothLE.Hosting;
 
 
-public class GattService : IGattService, IGattServiceBuilder, IDisposable
+public class GattService(CBPeripheralManager manager, string uuid, bool primary) : IGattService, IGattServiceBuilder, IDisposable
 {
-    readonly CBPeripheralManager manager;
-    readonly IList<GattCharacteristic> characteristics;
-
-
-    public GattService(CBPeripheralManager manager, string uuid, bool primary)
-    {
-        this.manager = manager;
-
-        this.Native = new CBMutableService(CBUUID.FromString(uuid), primary);
-        this.characteristics = new List<GattCharacteristic>();
-        this.Uuid = uuid;
-        this.Primary = primary;
-    }
-
-
-    public CBMutableService Native { get; }
-    public string Uuid { get; }
-    public bool Primary { get; }
+    readonly List<GattCharacteristic> characteristics = new();
+    public CBMutableService Native { get; } = new(CBUUID.FromString(uuid), primary);
+    public string Uuid => uuid;
+    public bool Primary => primary;
     public IReadOnlyList<IGattCharacteristic> Characteristics => this.characteristics.Cast<IGattCharacteristic>().ToList();
 
 
     public IGattCharacteristic AddCharacteristic(string uuid, Action<IGattCharacteristicBuilder> characteristicBuilder)
     {
-        var ch = new GattCharacteristic(this.manager, uuid);
+        var ch = new GattCharacteristic(manager, uuid);
         characteristicBuilder(ch);
         ch.Build(this.Native);
 

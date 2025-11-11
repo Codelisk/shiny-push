@@ -1,21 +1,14 @@
-using System;
 using Android.Bluetooth;
 
 
-namespace Shiny.BluetoothLE.Hosting.Internals
+namespace Shiny.BluetoothLE.Hosting.Internals;
+
+public class DescriptorReadEventArgs(
+    BluetoothGattDescriptor descriptor,
+    BluetoothDevice device,
+    int requestId,
+    int offset
+) : GattRequestEventArgs(device, requestId, offset)
 {
-    public class DescriptorReadEventArgs : GattRequestEventArgs
-    {
-        public DescriptorReadEventArgs(
-            BluetoothGattDescriptor descriptor,
-            BluetoothDevice device,
-            int requestId,
-            int offset) : base(device, requestId, offset)
-        {
-            this.Descriptor = descriptor;
-        }
-
-
-        public BluetoothGattDescriptor Descriptor { get; }
-    }
+    public BluetoothGattDescriptor Descriptor => descriptor;
 }

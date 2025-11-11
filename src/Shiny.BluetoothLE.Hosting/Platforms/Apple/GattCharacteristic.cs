@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using CoreBluetooth;
 using Foundation;
@@ -8,9 +7,8 @@ using Foundation;
 namespace Shiny.BluetoothLE.Hosting;
 
 
-public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilder, IDisposable
+public class GattCharacteristic(CBPeripheralManager manager, string uuid) : IGattCharacteristic, IGattCharacteristicBuilder, IDisposable
 {
-    readonly CBPeripheralManager manager = new();
     readonly PeripheralCache cache = new();
 
     CBMutableCharacteristic? native;
@@ -22,14 +20,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
     CBCharacteristicProperties properties = 0;
 
 
-    public GattCharacteristic(CBPeripheralManager manager, string uuid)
-    {
-        this.manager = manager;
-        this.Uuid = uuid;
-    }
-
-
-    public string Uuid { get; }
+    public string Uuid => uuid;
     public CharacteristicProperties Properties
     {
         get
@@ -47,7 +38,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
         if (this.native == null)
             throw new InvalidOperationException("Characteristic has not been built");
 
-        var success = this.manager.UpdateValue(
+        var success = manager.UpdateValue(
             NSData.FromArray(data),
             this.native,
             null
@@ -57,7 +48,7 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
             var tcs = new TaskCompletionSource<bool>();
             var handler = new EventHandler((sender, args) =>
             {
-                this.manager.UpdateValue(
+                manager.UpdateValue(
                     NSData.FromArray(data),
                     this.native,
                     null
@@ -67,12 +58,12 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
 
             try
             {
-                this.manager.ReadyToUpdateSubscribers += handler;
+                manager.ReadyToUpdateSubscribers += handler;
                 await tcs.Task.ConfigureAwait(false);
             }
             finally
             {
-                this.manager.ReadyToUpdateSubscribers -= handler;
+                manager.ReadyToUpdateSubscribers -= handler;
             }
         }
     }
@@ -136,15 +127,15 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
     public void Build(CBMutableService service)
     {
         if (this.onWrite != null)
-            this.manager.WriteRequestsReceived += this.OnWrite!;
+            manager.WriteRequestsReceived += this.OnWrite!;
 
         if (this.onRead != null)
-            this.manager.ReadRequestReceived += this.OnRead!;
+            manager.ReadRequestReceived += this.OnRead!;
 
         if (this.onSubscribe != null)
         {
-            this.manager.CharacteristicSubscribed += this.OnSubscribed!;
-            this.manager.CharacteristicUnsubscribed += this.OnUnSubscribed!;
+            manager.CharacteristicSubscribed += this.OnSubscribed!;
+            manager.CharacteristicUnsubscribed += this.OnUnSubscribed!;
         }
 
         this.native = new CBMutableCharacteristic(
@@ -169,10 +160,10 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
 
     public void Dispose()
     {
-        this.manager.WriteRequestsReceived -= this.OnWrite!;
-        this.manager.ReadRequestReceived -= this.OnRead!;
-        this.manager.CharacteristicSubscribed -= this.OnSubscribed!;
-        this.manager.CharacteristicUnsubscribed -= this.OnUnSubscribed!;
+        manager.WriteRequestsReceived -= this.OnWrite!;
+        manager.ReadRequestReceived -= this.OnRead!;
+        manager.CharacteristicSubscribed -= this.OnSubscribed!;
+        manager.CharacteristicUnsubscribed -= this.OnUnSubscribed!;
     }
 
 
@@ -211,11 +202,11 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
                     {
                         responded = true;
                         var nativeStatus = Enum.Parse<CBATTError>(status.ToString(), true);
-                        this.manager.RespondToRequest(req, nativeStatus);
+                        manager.RespondToRequest(req, nativeStatus);
                     }
                 ));
                 if (!responded)
-                    this.manager.RespondToRequest(req, CBATTError.Success);
+                    manager.RespondToRequest(req, CBATTError.Success);
             }
         }
     }
@@ -235,11 +226,11 @@ public class GattCharacteristic : IGattCharacteristic, IGattCharacteristicBuilde
         if (result.Status == GattState.Success)
         {
             args.Request.Value = NSData.FromArray(result.Data!);
-            this.manager.RespondToRequest(args.Request, CBATTError.Success);
+            manager.RespondToRequest(args.Request, CBATTError.Success);
         }
         else
         {
-            this.manager.RespondToRequest(args.Request, CBATTError.InsufficientEncryption);
+            manager.RespondToRequest(args.Request, CBATTError.InsufficientEncryption);
         }
     }
 }

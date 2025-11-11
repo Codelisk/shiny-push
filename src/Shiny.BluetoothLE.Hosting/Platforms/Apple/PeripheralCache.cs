@@ -9,15 +9,8 @@ namespace Shiny.BluetoothLE.Hosting;
 
 class PeripheralCache
 {
-    readonly Dictionary<NSUuid, Peripheral> subscribed;
-    readonly Dictionary<NSUuid, Peripheral> peripherals;
-
-
-    public PeripheralCache()
-    {
-        this.subscribed = new Dictionary<NSUuid, Peripheral>();
-        this.peripherals = new Dictionary<NSUuid, Peripheral>();
-    }
+    readonly Dictionary<NSUuid, Peripheral> subscribed = new();
+    readonly Dictionary<NSUuid, Peripheral> peripherals = new();
 
 
     public IReadOnlyList<Peripheral> Subscribed => this.subscribed.Values.ToList();
@@ -36,13 +29,10 @@ class PeripheralCache
     {
         var peripheral = this.GetOrAdd(central);
         if (subscribe)
-        {
             this.subscribed.Add(central.Identifier, peripheral);
-        }
         else
-        {
             this.subscribed.Remove(central.Identifier);
-        }
+
         return peripheral;
     }
 }

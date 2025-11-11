@@ -2,16 +2,9 @@ using System;
 using Android.Bluetooth;
 
 
-namespace Shiny.BluetoothLE.Hosting.Internals
+namespace Shiny.BluetoothLE.Hosting.Internals;
+
+public class GattEventArgs(BluetoothDevice device) : EventArgs
 {
-    public class GattEventArgs : EventArgs
-    {
-        public GattEventArgs(BluetoothDevice device)
-        {
-            this.Device = device;
-        }
-
-
-        public BluetoothDevice Device { get; }
-    }
+    public BluetoothDevice Device => device;
 }

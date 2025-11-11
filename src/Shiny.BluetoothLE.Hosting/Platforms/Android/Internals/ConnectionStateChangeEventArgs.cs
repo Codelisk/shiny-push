@@ -1,19 +1,10 @@
-using System;
 using Android.Bluetooth;
 
 
-namespace Shiny.BluetoothLE.Hosting.Internals
+namespace Shiny.BluetoothLE.Hosting.Internals;
+
+public class ConnectionStateChangeEventArgs(BluetoothDevice device, ProfileState oldState, ProfileState newState) : GattEventArgs(device)
 {
-    public class ConnectionStateChangeEventArgs : GattEventArgs
-    {
-        public ConnectionStateChangeEventArgs(BluetoothDevice device, ProfileState oldState, ProfileState newState) : base(device)
-        {
-            this.OldState = oldState;
-            this.NewState = newState;
-        }
-
-
-        public ProfileState OldState { get; }
-        public ProfileState NewState { get; }
-    }
+    public ProfileState OldState => oldState;
+    public ProfileState NewState => newState;
 }

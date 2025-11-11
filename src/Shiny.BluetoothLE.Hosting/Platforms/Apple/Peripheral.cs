@@ -1,19 +1,11 @@
-﻿using System;
-using CoreBluetooth;
+﻿using CoreBluetooth;
 
 namespace Shiny.BluetoothLE.Hosting;
 
 
-public class Peripheral : IPeripheral
+public class Peripheral(CBCentral central) : IPeripheral
 {
-    public Peripheral(CBCentral central)
-    {
-        this.Central = central;
-        this.Uuid = central.Identifier.ToString();
-    }
-
-
-    public string Uuid { get; }
+    public string Uuid { get; } = central.Identifier.ToString();
     public CBCentral Central { get; }
     public object? Context { get; set; }
     public int Mtu => (int)this.Central.MaximumUpdateValueLength;

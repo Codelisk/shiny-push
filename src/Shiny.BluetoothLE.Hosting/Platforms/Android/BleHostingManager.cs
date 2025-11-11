@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Android.Bluetooth;
 using Android.Bluetooth.LE;
 using Android.OS;
 using Java.Util;
@@ -12,7 +13,7 @@ using static Android.Manifest;
 namespace Shiny.BluetoothLE.Hosting;
 
 
-public partial class BleHostingManager : IBleHostingManager
+public class BleHostingManager : IBleHostingManager
 {
     readonly Dictionary<string, GattService> services = new();
     readonly GattServerContext context;
@@ -23,12 +24,12 @@ public partial class BleHostingManager : IBleHostingManager
     {
         get
         {
-            if (!OperatingSystemShim.IsAndroidVersionAtLeast(23))
+            if (!OperatingSystem.IsAndroidVersionAtLeast(23))
                 return AccessState.NotSupported;
 
             var status = AccessState.Available;
-            if (OperatingSystemShim.IsAndroidVersionAtLeast(31))
-                status = this.context.Platform.GetCurrentPermissionStatus(Permission.BluetoothAdvertise);
+            if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                status = AndroidShinyHost.GetCurrentPermissionStatus(Permission.BluetoothAdvertise);
 
             if (status == AccessState.Available)
                 status = this.context.Manager.GetAccessState();
@@ -42,12 +43,12 @@ public partial class BleHostingManager : IBleHostingManager
     {
         get
         {
-            if (!OperatingSystemShim.IsAndroidVersionAtLeast(23))
+            if (!OperatingSystem.IsAndroidVersionAtLeast(23))
                 return AccessState.NotSupported;
 
             var status = AccessState.Available;
-            if (OperatingSystemShim.IsAndroidVersionAtLeast(31))
-                status = this.context.Platform.GetCurrentPermissionStatus(Permission.BluetoothConnect);
+            if (OperatingSystem.IsAndroidVersionAtLeast(31))
+                status = AndroidShinyHost.GetCurrentPermissionStatus(Permission.BluetoothConnect);
 
             if (status == AccessState.Available)
                 status = this.context.Manager.GetAccessState();
@@ -62,14 +63,14 @@ public partial class BleHostingManager : IBleHostingManager
         if (!advertise && !connect)
             throw new ArgumentException("You must request at least 1 permission");
 
-        if (!OperatingSystemShim.IsAndroidVersionAtLeast(23))
+        if (!OperatingSystem.IsAndroidVersionAtLeast(23))
             return AccessState.NotSupported; //throw new InvalidOperationException("BLE Advertiser needs API Level 23+");
 
         var current = this.context.Manager.GetAccessState();
         if (current != AccessState.Available && current != AccessState.Unknown)
             return current;
 
-        if (OperatingSystemShim.IsAndroidVersionAtLeast(31))
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
         {
             var perms = new List<string>();
             if (advertise)
@@ -85,6 +86,10 @@ public partial class BleHostingManager : IBleHostingManager
         return AccessState.Available;
     }
 
+    
+    static GattStatus ToNative(GattState status)
+        => (GattStatus)Enum.Parse(typeof(GattStatus), status.ToString());
+    
 
     public bool IsAdvertising => this.adCallbacks != null;
     public IReadOnlyList<IGattService> Services => this.services.Values.Cast<IGattService>().ToArray();

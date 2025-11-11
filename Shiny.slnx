@@ -20,6 +20,7 @@
     <File Path="version.json" />
   </Folder>
   <Folder Name="/libs/">
+    <Project Path="src\Shiny.BluetoothLE.Hosting\Shiny.BluetoothLE.Hosting.csproj" />
     <Project Path="src\Shiny.BluetoothLE\Shiny.BluetoothLE.csproj" />
     <Project Path="src\Shiny.Core\Shiny.Core.csproj" Type="Classic C#" />
     <Project Path="src\Shiny.Hosting.Maui\Shiny.Hosting.Maui.csproj" />
@@ -39,7 +40,6 @@
   </Folder>
   <Folder Name="/libs/To Port/">
     <Project Path="src\Shiny.Beacons\Shiny.Beacons.csproj" />
-    <Project Path="src\Shiny.BluetoothLE.Hosting\Shiny.BluetoothLE.Hosting.csproj" />
     <Project Path="src\Shiny.Jobs\Shiny.Jobs.csproj" Type="Classic C#" />
     <Project Path="src\Shiny.Locations\Shiny.Locations.csproj" />
     <Project Path="src\Shiny.Net.Http\Shiny.Net.Http.csproj" Type="Classic C#" />

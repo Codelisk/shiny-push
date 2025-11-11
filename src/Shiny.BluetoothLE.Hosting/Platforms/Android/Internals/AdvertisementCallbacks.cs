@@ -2,32 +2,20 @@
 using Android.Bluetooth.LE;
 
 
-namespace Shiny.BluetoothLE.Hosting.Internals
+namespace Shiny.BluetoothLE.Hosting.Internals;
+
+public class AdvertisementCallbacks(Action onStart, Action<Exception> onError) : AdvertiseCallback
 {
-    public class AdvertisementCallbacks : AdvertiseCallback
+    public override void OnStartSuccess(AdvertiseSettings settingsInEffect)
     {
-        readonly Action onStart;
-        readonly Action<Exception> onError;
+        base.OnStartSuccess(settingsInEffect);
+        onStart.Invoke();
+    }
 
 
-        public AdvertisementCallbacks(Action onStart, Action<Exception> onError)
-        {
-            this.onStart = onStart;
-            this.onError = onError;
-        }
-
-
-        public override void OnStartSuccess(AdvertiseSettings settingsInEffect)
-        {
-            base.OnStartSuccess(settingsInEffect);
-            this.onStart.Invoke();
-        }
-
-
-        public override void OnStartFailure(AdvertiseFailure errorCode)
-        {
-            base.OnStartFailure(errorCode);
-            this.onError.Invoke(new ArgumentException($"Failed to start BLE advertising - {errorCode}"));
-        }
+    public override void OnStartFailure(AdvertiseFailure errorCode)
+    {
+        base.OnStartFailure(errorCode);
+        onError.Invoke(new ArgumentException($"Failed to start BLE advertising - {errorCode}"));
     }
 }

@@ -8,23 +8,15 @@ namespace Shiny.BluetoothLE.Hosting.Internals;
 
 public class GattServerContext : BluetoothGattServerCallback
 {
-    public GattServerContext(AndroidPlatform platform)
-    {
-        this.Platform = platform;
-        this.Manager = platform.GetSystemService<BluetoothManager>(Context.BluetoothService);
-    }
+    public BluetoothManager Manager { get; } = AndroidShinyHost.GetSystemService<BluetoothManager>(Context.BluetoothService);
 
 
-    public AndroidPlatform Platform { get; }
-    public BluetoothManager Manager { get; }
-
-
-    BluetoothGattServer server;
+    BluetoothGattServer? server;
     public BluetoothGattServer Server
     {
         get
         {
-            this.server ??= this.Manager.OpenGattServer(this.Platform.AppContext, this)!;
+            this.server ??= this.Manager.OpenGattServer(AndroidShinyHost.AppContext, this)!;
             return this.server!;
         }
     }
@@ -38,10 +30,10 @@ public class GattServerContext : BluetoothGattServerCallback
 
 
     public Subject<CharacteristicReadEventArgs> CharacteristicRead { get; } = new();
-    public override void OnCharacteristicReadRequest(BluetoothDevice device,
+    public override void OnCharacteristicReadRequest(BluetoothDevice? device,
                                                      int requestId,
                                                      int offset,
-                                                     BluetoothGattCharacteristic characteristic)
+                                                     BluetoothGattCharacteristic? characteristic)
         => this.CharacteristicRead.OnNext(new CharacteristicReadEventArgs(device, characteristic, requestId, offset));
 
     public Subject<CharacteristicWriteEventArgs> CharacteristicWrite { get; } = new();
