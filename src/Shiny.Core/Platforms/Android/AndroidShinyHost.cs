@@ -1,11 +1,11 @@
 using System;
 using System.IO;
-using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using AndroidX.Core.Content;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Activity = Android.App.Activity;
 
 namespace Shiny;
@@ -13,27 +13,48 @@ namespace Shiny;
 
 public static class AndroidShinyHost
 {
-    public static void Init(Application app)
+    public static void Init(Android.App.Application app, IServiceProvider serviceProvider)
     {
+        ShinyHost.Init(serviceProvider);
         AppContext = app;
         AppData = new DirectoryInfo(app.FilesDir!.AbsolutePath);
         
-        if (activityLifecycle == null) 
+        if (lifecycleManager == null) 
         {
-            activityLifecycle = new AndroidActivityLifecycle();
-            app.RegisterActivityLifecycleCallbacks(activityLifecycle);
-            
-            // TODO: hook events - don't depend on 3rd party hooks
+            lifecycleManager = new AndroidLifecycleManager(app);
+            // TODO: hook events - don't depend on 3rd party hooks or allow it to happen internally
         }
     }
 
 
-    static AndroidActivityLifecycle? activityLifecycle;
+    static AndroidLifecycleManager? lifecycleManager;
     
-    // TODO: getter error if not initialized
-    public static Application AppContext { get; private set; }
-    public static DirectoryInfo AppData { get; private set; }
-    public static Activity? CurrentActivity => activityLifecycle?.Activity;
+    public static Android.App.Application AppContext
+    {
+        get
+        {
+            if (field == null)
+                throw new InvalidOperationException("You must call AndroidShinyHost.Init in your Application class before accessing the AppContext");
+            
+            return field;
+        }
+        private set;
+    }
+
+
+    public static DirectoryInfo AppData
+    {
+        get
+        {
+            if (field == null)
+                throw new InvalidOperationException("You must call AndroidShinyHost.Init in your Application class before accessing the AppData");
+            
+            return field;
+        }
+        private set;
+    }
+    
+    public static Activity? CurrentActivity => lifecycleManager?.Activity;
    
     
     public static void OnActivityOnCreate(Activity activity, Bundle? savedInstanceState)
@@ -45,12 +66,13 @@ public static class AndroidShinyHost
      public static void OnNewIntent(Activity activity, Intent? intent)
          => Execute<IAndroidLifecycle.IOnActivityNewIntent>(x => x.Handle(activity, intent));
 
-     public static void OnActivityResult(Activity activity, int requestCode, Result result, Intent? intent)
+     public static void OnActivityResult(Activity activity, int requestCode, Android.App.Result result, Intent? intent)
          => Execute<IAndroidLifecycle.IOnActivityResult>(x => x.Handle(activity, requestCode, result, intent));
     
      static void Execute<T>(Action<T> action)
      {
          var services = ShinyHost.ServiceProvider.GetServices<T>();
+         ShinyHost.ServiceProvider.GetService<ILogger<AndroidShinyHost>>();
          foreach (var handler in services)
          {
              try
@@ -102,57 +124,163 @@ public static class AndroidShinyHost
             AppContext.RegisterReceiver(new T(), filter);
         }
     }
-
-    //     public void Start()
-//     {
-//         // this is really only need for unit tests - it will passthrough under normal circumstances
-//         this.platform.InvokeOnMainThread(() =>
-//         {
-//             try
-//             {
-//                 ProcessLifecycleOwner.Get().Lifecycle.AddObserver(this);
-//             }
-//             catch (Exception ex)
-//             {
-//                 this.logger.LogWarning(ex, "Could not attach lifecycle observer");
-//             }
-//         });
-//     }
-//
-//
-//     [Lifecycle.Event.OnResume]
-//     [Export]
-//     public void OnResume() => this.Execute(this.appHandlers, x => x.OnForeground());
-//
-//
-//     [Lifecycle.Event.OnPause]
-//     [Export]
-//     public void OnPause() => this.Execute(this.appHandlers, x => x.OnBackground());
-//
-//     //[Lifecycle.Event.OnDestroy]
-//     //[Export]
-//     //public void OnDestroy()
-//     //{
-//     //    Console.WriteLine("LIFECYCLE: OnDestory");
-//     //}
-//
-
-//
-//     public new void Dispose()
-//     {
-//         // dispose is (should) only used by unit tests
-//         // this is really only need for unit tests - it will passthrough under normal circumstances
-//         this.platform.InvokeOnMainThread(() =>
-//         {
-//             try
-//             {
-//                 ProcessLifecycleOwner.Get().Lifecycle.RemoveObserver(this);
-//             }
-//             catch (Exception ex)
-//             {
-//                 this.logger.LogWarning(ex, "Could not remove lifecycle observer");
-//             }
-//         });
-//         base.Dispose();
-//     }
 }
+
+//     readonly Handler handler = new Handler(Looper.MainLooper);
+//     public void InvokeOnMainThread(Action action)
+//     {
+//         if (Looper.MainLooper.IsCurrentThread)
+//             action();
+//         else
+//             this.handler.Post(action);
+//     }
+//
+//
+//     public IObservable<ActivityChanged> WhenActivityStatusChanged() => Observable.Create<ActivityChanged>(ob =>
+//     {
+//         if (this.CurrentActivity != null)
+//             ob.Respond(new ActivityChanged(this.CurrentActivity, ActivityState.Created, null));
+//
+//         return activityLifecycle
+//             .ActivitySubject
+//             .Subscribe(x => ob.Respond(x));
+//     });
+//
+//
+//     public async Task<AccessState> RequestForegroundServicePermissions()
+//     {
+//         if (OperatingSystemShim.IsAndroidVersionAtLeast(33))
+//         {
+//             var results = await this.RequestPermissions(
+//                 Manifest.Permission.ForegroundService,
+//                 Manifest.Permission.PostNotifications
+//             );
+//             if (results.IsSuccess())
+//                 return AccessState.Available;
+//
+//             if (!results.IsGranted(Manifest.Permission.ForegroundService))
+//                 return AccessState.NotSetup;
+//
+//             return AccessState.Restricted; // no post_notifications
+//         }
+//         else if (OperatingSystemShim.IsAndroidVersionAtLeast(31))
+//         {
+//             var results = await this.RequestPermissions(Manifest.Permission.ForegroundService);
+//             if (results.IsSuccess())
+//                 return AccessState.Available;
+//
+//             return AccessState.NotSetup;
+//         }
+//
+//         return AccessState.Available;
+//     }
+//
+//     public const string ActionServiceStart = "ACTION_START_FOREGROUND_SERVICE";
+//     public const string ActionServiceStop = "ACTION_STOP_FOREGROUND_SERVICE";
+//     public const string IntentActionStopWithTask = "StopWithTask";
+//
+//     public void StartService(Type serviceType, bool stopWithTask = true)
+//     {
+//         var intent = new Intent(this.AppContext, serviceType);
+//         intent.SetAction(ActionServiceStart);
+//         intent.PutExtra(IntentActionStopWithTask, stopWithTask);
+//
+//         if (OperatingSystemShim.IsAndroidVersionAtLeast(31))
+//             this.AppContext.StartForegroundService(intent);
+//         else
+//             this.AppContext.StartService(intent);
+//     }
+//
+//
+//     public void StopService(Type serviceType)
+//     {
+//         var intent = new Intent(this.AppContext, serviceType);
+//         intent.SetAction(ActionServiceStop);
+//         this.AppContext.StartService(intent);
+//         //this.AppContext.StopService(intent);
+//     }
+//
+//     public int GetDrawableByName(string name) => this
+//         .AppContext
+//         .Resources!
+//         .GetIdentifier(
+//             name,
+//             "drawable",
+//             this.AppContext.PackageName
+//         );
+//
+//     public IObservable<AccessState> RequestAccess(string androidPermissions)
+//         => this.RequestPermissions(new[] { androidPermissions }).Select(x => x.IsSuccess() ? AccessState.Available : AccessState.Denied);
+//
+//
+//     public IObservable<PermissionRequestResult> RequestPermissions(params string[] androidPermissions) => Observable.Create<PermissionRequestResult>(ob =>
+//     {
+//         var comp = new CompositeDisposable();
+//
+//         //https://developer.android.com/training/permissions/requesting
+//         var allGood = androidPermissions.All(p => ContextCompat.CheckSelfPermission(this.AppContext, p) == Permission.Granted);
+//         if (allGood)
+//         {
+//             // everything is already good
+//             var grants = Enumerable.Repeat(Permission.Granted, androidPermissions.Length).ToArray();
+//             ob.Respond(new PermissionRequestResult(0, androidPermissions, grants));
+//         }
+//         else
+//         {
+//             //if (this.Status == PlatformState.Background)
+//             //    throw new ApplicationException("You cannot make permission requests while your application is in the background.  Please call RequestAccess in the Shiny library you are using while your app is in the foreground so your user can respond.  You are getting this message because your user has either not granted these permissions or has removed them.");
+//             this.SetRequestedPermissions(androidPermissions);
+//             var current = Interlocked.Increment(ref this.requestCode);
+//             comp.Add(this
+//                 .permissionSubject
+//                 .Where(x => x.RequestCode == current)
+//                 .Subscribe(x => ob.Respond(x))
+//             );
+//
+//             comp.Add(this
+//                 .WhenActivityStatusChanged()
+//                 .Take(1)
+//                 .Timeout(TimeSpan.FromSeconds(5))
+//                 .Subscribe(
+//                     x => ActivityCompat.RequestPermissions(
+//                         x.Activity,
+//                         androidPermissions,
+//                         current
+//                     ),
+//                     ex => ob.OnError(new TimeoutException(
+//                         "A current activity was not detected to be able to request permissions",
+//                         ex
+//                     ))
+//                 )
+//             );
+//         }
+//
+//         return comp;
+//     });
+//
+//     void SetRequestedPermissions(string[] androidPermissions)
+//     {
+//         lock (this.requestedPermissions)
+//         {
+//             var count = this.requestedPermissions.Count;
+//             foreach (var p in androidPermissions)
+//             {
+//                 if (!this.requestedPermissions.Contains(p, StringComparer.InvariantCultureIgnoreCase))
+//                     this.requestedPermissions.Add(p);
+//             }
+//             if (count != this.requestedPermissions.Count)
+//                 this.store.Set(PermissionsKey, this.requestedPermissions);
+//         }
+//     }
+//
+//
+//     bool HasRequestedPermission(string androidPermission)
+//     {
+//         lock (this.requestedPermissions)
+//         {
+//             return this.requestedPermissions.Contains(
+//                 androidPermission,
+//                 StringComparer.InvariantCultureIgnoreCase
+//             );
+//         }
+//     }

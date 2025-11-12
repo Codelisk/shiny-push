@@ -17,10 +17,11 @@ public static class ShinyExtensions
             events.AddAndroid(android => android
                 // Shiny will supply app foreground/background events
                 // .OnResume()
-                .OnApplicationCreate(_ =>
+                .OnApplicationCreate(app =>
                 {
+                    // TODO: pass in host services
+                    AndroidShinyHost.Init(app, null);
                 })
-                .OnCreate(AndroidShinyHost.OnActivityOnCreate)
                 .OnRequestPermissionsResult(AndroidShinyHost.OnRequestPermissionsResult)
                 .OnActivityResult(AndroidShinyHost.OnActivityResult)
                 .OnNewIntent(AndroidShinyHost.OnNewIntent)

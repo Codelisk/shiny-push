@@ -1,16 +1,9 @@
-﻿// using System;
-// using System.IO;
-//
-// using Windows.ApplicationModel.Core;
-// using Windows.Storage;
-// using Windows.UI.Core;
-//
-// namespace Shiny;
-//
-//
-// public class WindowsPlatform : IPlatform
-// {
-//     public WindowsPlatform()
+namespace Shiny;
+
+
+public static class WindowsShinyHost
+{
+    //     public WindowsPlatform()
 //     {
 //         var path = ApplicationData.Current.LocalFolder.Path;
 //         this.AppData = new DirectoryInfo(path);
@@ -37,4 +30,4 @@
 //         else
 //             dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => action());
 //     }
-// }
+}

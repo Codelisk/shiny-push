@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>$(TargetFrameworks);net9.0-android</TargetFrameworks>
-        <TargetFrameworks>$(TargetFrameworks);net9.0-ios</TargetFrameworks>
-        <TargetFrameworks>$(TargetFrameworks);net9.0-maccatalyst</TargetFrameworks>
+        <TargetFrameworks>$(TargetFrameworks);net10.0-android</TargetFrameworks>
+        <TargetFrameworks>$(TargetFrameworks);net10.0-ios</TargetFrameworks>
+        <TargetFrameworks>$(TargetFrameworks);net10.0-maccatalyst</TargetFrameworks>
         <OutputType>Exe</OutputType>
         <RootNamespace>Shiny.Tests</RootNamespace>
         <SingleProject>true</SingleProject>
@@ -37,10 +37,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.4" />
-        <PackageReference Include="FluentAssertions" Version="6.12.0" />
-        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
+        <PackageReference Include="Microsoft.Maui.Controls"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug"/>
+        <PackageReference Include="Shouldly"/>
+        <PackageReference Include="MartinCostello.Logging.XUnit"/>
         <PackageReference Include="Shiny.Xunit.Runners.Maui" Version="1.0.0" />
     </ItemGroup>
 

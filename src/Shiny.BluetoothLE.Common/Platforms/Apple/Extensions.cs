@@ -15,6 +15,10 @@ public static class Extensions
     public static bool IsConnected(this NSStream stream) =>
         stream.Status is NSStreamStatus.Open or NSStreamStatus.Reading or NSStreamStatus.Writing;
 
+    
+    public static Guid ToGuid(this NSUuid uuid) => Guid.ParseExact(uuid.AsString(), "d");
+    public static NSUuid ToNSUuid(this Guid guid) => new(guid.ToString());
+    
 
     public static IObservable<NSStreamEvent> WhenEvent(this NSStream stream, bool throwError = false) => Observable.Create<NSStreamEvent>(ob =>
     {

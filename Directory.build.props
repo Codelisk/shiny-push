@@ -12,23 +12,22 @@
         <PackageProjectUrl>https://shinylib.net</PackageProjectUrl>
         <PackageIcon>icon.png</PackageIcon>
         <PackageReleaseNotes>https://shinylib.net/release-notes/client/v30/</PackageReleaseNotes>
-        <PackageTags>xamarin ios android ble bluetooth bluetoothle push notifications sensors geofences gps location background jobs settings speech sensors</PackageTags>
+        <PackageTags>maui ios android ble bluetooth bluetoothle push notifications sensors geofences gps location background jobs settings speech sensors</PackageTags>
         <PackageReadmeFile>readme.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/shinyorg/shiny</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-
         <CI Condition="'$(GITHUB_ACTIONS)' == 'true'">true</CI>
         <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
     <PropertyGroup>
-        <WindowsTarget Condition="$([MSBuild]::IsOSPlatform('windows'))">net9.0-windows10.0.19041.0</WindowsTarget>
-
-        <StandardTargetFrameworks>net9.0</StandardTargetFrameworks>
-        <IosTargetFrameworks>net9.0-ios18.0</IosTargetFrameworks>
-        <AndroidTargetFrameworks>net9.0-android35.0</AndroidTargetFrameworks>
-        <MauiPlatformTargetFrameworks>net9.0-android35.0;net9.0-ios18.0;net9.0-maccatalyst18.0</MauiPlatformTargetFrameworks>
-        <AppleTargetFrameworks>$(IosTargetFrameworks);net9.0-maccatalyst18.0</AppleTargetFrameworks>
+        <WindowsTarget Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0-windows10.0.19041.0</WindowsTarget>
+        <MauiVersion>10.0.10</MauiVersion>
+        <StandardTargetFrameworks>net10.0</StandardTargetFrameworks>
+        <IosTargetFrameworks>net10.0-ios26.0</IosTargetFrameworks>
+        <AndroidTargetFrameworks>net10.0-android36.0</AndroidTargetFrameworks>
+        <MauiPlatformTargetFrameworks>net10.0-android36.0;net10.0-ios26.0;net10.0-maccatalyst26.0</MauiPlatformTargetFrameworks>
+        <AppleTargetFrameworks>$(IosTargetFrameworks);net10.0-maccatalyst26.0</AppleTargetFrameworks>
         <PlatformOnlyTargetFrameworks>$(AppleTargetFrameworks);$(AndroidTargetFrameworks)</PlatformOnlyTargetFrameworks>
         <DefaultMobileTargetFrameworks>$(StandardTargetFrameworks);$(IosTargetFrameworks);$(AndroidTargetFrameworks)</DefaultMobileTargetFrameworks>
         <DefaultTargetFrameworks>$(StandardTargetFrameworks);$(PlatformOnlyTargetFrameworks)</DefaultTargetFrameworks>
@@ -83,10 +82,4 @@
 		<RunAOTCompilation>true</RunAOTCompilation>    
 	</PropertyGroup>
     -->
-    <Target Name="_DisableRemoteBuildForLibraries" BeforeTargets="BeforeBuild;_SayHello">
-		<PropertyGroup>
-			<IsRemoteBuild>false</IsRemoteBuild>
-			<ServerAddress></ServerAddress>
-		</PropertyGroup>
-	</Target>
 </Project>

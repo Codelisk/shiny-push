@@ -8,12 +8,6 @@ namespace Shiny;
 
 public interface IAndroidLifecycle
 {
-    public interface IApplicationLifecycle
-    {
-        void OnForeground();
-        void OnBackground();
-    }
-
     public interface IOnActivityOnCreate
     {
         void ActivityOnCreate(Activity activity, Bundle? savedInstanceState);

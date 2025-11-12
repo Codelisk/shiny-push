@@ -9,8 +9,5 @@ namespace Shiny;
 public class ShinyMauiInitializationService : IMauiInitializeService
 {
     public void Initialize(IServiceProvider services)
-    {
-        var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-        ShinyHost.Init(services, loggerFactory);
-    }
+        => ShinyHost.Init(services);
 }

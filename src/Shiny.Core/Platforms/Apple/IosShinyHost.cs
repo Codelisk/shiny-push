@@ -1,6 +1,7 @@
 using System;
 using Foundation;
 using Microsoft.Extensions.DependencyInjection;
+using ObjCRuntime;
 using UIKit;
 
 namespace Shiny;
@@ -8,6 +9,19 @@ namespace Shiny;
 
 public static class IosShinyHost
 {
+    public static void Init(IServiceProvider serviceProvider)
+    {
+        ShinyHost.Init(serviceProvider);
+    }
+    
+    
+    public static bool IsSimulator =>
+#if MACCATALYST || MACOS
+	    false;
+#else
+        Runtime.Arch == Arch.SIMULATOR;
+#endif
+
     public static void OnRegisteredForRemoteNotifications(NSData deviceToken)
         => Execute<IIosLifecycle.IRemoteNotifications>(x => x.OnRegistered(deviceToken));
    

@@ -1,5 +1,7 @@
 ﻿using System;
 using Foundation;
+using Microsoft.Extensions.Hosting;
+using Shiny.Hosting.Native;
 using UIKit;
 
 namespace Shiny;
@@ -7,11 +9,20 @@ namespace Shiny;
 
 public abstract class ShinyAppDelegate : UIApplicationDelegate
 {
-
+    /// <summary>
+    /// Wireup all of your dependencies here
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    protected abstract IHost CreateHost(IHostApplicationBuilder builder);
 
     public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
     {
-        //this.CreateShinyHost().Run();
+        // TODO: I need to pass launchOptions for event
+        var builder = new ShinyHostApplicationBuilder();
+        var host = this.CreateHost(builder);
+        IosShinyHost.Init(host.Services);
+
         return base.FinishedLaunching(application, launchOptions);
     }
 

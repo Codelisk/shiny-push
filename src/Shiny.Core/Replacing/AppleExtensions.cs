@@ -14,12 +14,7 @@
 //     readonly static DateTime reference = new(2001, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 //
 //
-//     public static bool IsSimulator =>
-// #if MACCATALYST || MACOS
-// 	    false;
-// #else
-//         Runtime.Arch == Arch.SIMULATOR;
-// #endif
+
 //     //public static IObservable<NSNotification> ObserveNotification(this NSNotificationCenter notificationCenter, NSString notificationKey) => Observable.Create<NSNotification>(obs =>
 //     //{
 //     //    var pointer = notificationCenter.AddObserver(notificationKey, obs.OnNext);
@@ -132,6 +127,5 @@
 //         return false;
 //     }
 //
-//     public static Guid ToGuid(this NSUuid uuid) => Guid.ParseExact(uuid.AsString(), "d");
-//     public static NSUuid ToNSUuid(this Guid guid) => new NSUuid(guid.ToString());
+
 // }

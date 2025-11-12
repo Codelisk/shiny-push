@@ -10,11 +10,11 @@ namespace Shiny;
 
 public abstract class ShinyAndroidActivity : AppCompatActivity
 {
-    protected override void OnCreate(Bundle? savedInstanceState)
-    {
-        base.OnCreate(savedInstanceState);
-        AndroidShinyHost.OnActivityOnCreate(this, savedInstanceState);
-    }
+    // protected override void OnCreate(Bundle? savedInstanceState)
+    // {
+    //     base.OnCreate(savedInstanceState);
+    //     AndroidShinyHost.OnActivityOnCreate(this, savedInstanceState);
+    // }
 
 
     protected override void OnNewIntent(Intent? intent)

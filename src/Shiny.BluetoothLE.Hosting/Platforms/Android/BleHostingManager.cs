@@ -85,12 +85,8 @@ public class BleHostingManager : IBleHostingManager
         }
         return AccessState.Available;
     }
-
     
-    static GattStatus ToNative(GattState status)
-        => (GattStatus)Enum.Parse(typeof(GattStatus), status.ToString());
     
-
     public bool IsAdvertising => this.adCallbacks != null;
     public IReadOnlyList<IGattService> Services => this.services.Values.Cast<IGattService>().ToArray();
 

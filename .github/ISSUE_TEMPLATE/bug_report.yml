@@ -34,9 +34,9 @@ body:
       label: What operating system(s) are effected?
       description: You may select more than one
       options:
-      - label: iOS (13+ supported)
+      - label: iOS
       - label: Mac Catalyst
-      - label: Android (12+ supported)
+      - label: Android
   - type: textarea
     validations:
       required: true
@@ -68,9 +68,9 @@ body:
       label: Exception or Log output
       description: Please copy and paste any relevant log output
   - type: textarea
-    id: codesample
+    id: reprolink
     attributes:
-      label: Code Sample
+      label: Link to Public GitHub Sample
       description: Please include a github repo with your reproducible sample
   - type: checkboxes
     id: terms
@@ -78,11 +78,11 @@ body:
       label: Code of Conduct
       description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/shinyorg/shiny/blob/master/.github/CODE_OF_CONDUCT.md)
       options:
-        - label: I have supplied a reproducible sample that is NOT FROM THE SHINY SAMPLES! 
+        - label: I have provided a full reproducible sample
           required: true
-        - label: I am a Sponsor OR I am using the LATEST stable/beta version from nuget (v3.0 stable - BETAs are not taking issues unless you are a sponsor)
+        - label: I understand this is not tech support and my issue may be closed if it is not a bug
           required: true
-        - label: I am Sponsor OR My GitHub account is 30+ days old
+        - label: I am using the LATEST STABLE version from nuget
           required: true
-        - label: I understand that if I am checking these boxes and I am not actually following what they are saying, I will be removed from this repository!
+        - label: My GitHub account is 30+ days old
           required: true

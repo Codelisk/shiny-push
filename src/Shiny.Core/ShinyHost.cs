@@ -10,7 +10,7 @@ public static class ShinyHost
     // TODO: need foreground/background app status for ios, android, & windows
     // TODO: need mainthread invoker? 
     
-    public static void Init(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
+    public static void Init(IServiceProvider serviceProvider)
     {
         // //Current = new Host(serviceProvider, loggerFactory);
         //

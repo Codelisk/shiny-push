@@ -4,6 +4,7 @@
         <TargetFramework>$(StandardTargetFrameworks)</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>Shiny</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

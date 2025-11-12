@@ -8,6 +8,9 @@ namespace Shiny.BluetoothLE.Hosting;
 
 public static class Constants
 {
+    public static GattStatus ToNative(this GattState status)
+        => (GattStatus)Enum.Parse(typeof(GattStatus), status.ToString());
+    
     public static readonly Guid NotifyDescriptorId = new("00002902-0000-1000-8000-00805f9b34fb");
     public static readonly UUID NotifyDescriptorUuid = UUID.FromString("00002902-0000-1000-8000-00805f9b34fb");
     public static readonly byte[] NotifyEnableBytes = BluetoothGattDescriptor.EnableNotificationValue.ToArray();
