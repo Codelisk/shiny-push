@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DeviceRunners.UITesting;
+using DeviceRunners.VisualRunners;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.LifecycleEvents;
-using Xunit.Runners.Maui;
 
 namespace Shiny.Tests;
 
@@ -16,22 +18,12 @@ public static class MauiProgram
     {
         System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
 
-        Configuration = new ConfigurationBuilder()
-            .AddJsonPlatformBundle(optional: false)
-            .Build();
+        // Configuration = new ConfigurationBuilder()
+        //     .AddJsonPlatformBundle(optional: false)
+        //     .Build();
 
-        var builder = MauiApp.CreateBuilder();
-
-        builder
-            .ConfigureTests(new TestOptions
-            {
-                Assemblies =
-                {
-                    typeof(MauiProgram).Assembly
-                }
-            })
-            .UseShiny() // this is somewhat of a hack as it hooks the shiny events BUT to the current host provider
-            .UseVisualRunner()
+        var builder = MauiApp
+            .CreateBuilder()
             .ConfigureLifecycleEvents(lc =>
             {
 #if ANDROID
@@ -41,40 +33,39 @@ public static class MauiProgram
 #else
                 DeviceDisplay.KeepScreenOn = true;
 #endif
-            });
+            })
+            .ConfigureUITesting()
+            .UseVisualTestRunner(conf => conf
+                .AddXunit()
+                .AddConsoleResultChannel()
+                .AddTestAssembly(typeof(MauiProgram).Assembly)
+#if MODE_NON_INTERACTIVE_VISUAL
+				.EnableAutoStart(true)
+				.AddTcpResultChannel(new TcpResultChannelOptions
+				{
+					HostNames = ["localhost", "10.0.2.2"],
+					Port = 16384,
+					Formatter = new TextResultChannelFormatter(),
+					Required = false,
+					Retries = 3,
+					RetryTimeout = TimeSpan.FromSeconds(5),
+					Timeout = TimeSpan.FromSeconds(30)
+				})
+#endif
+            );
+#if DEBUG
+            builder.Logging.AddDebug();
+#endif
 
-        //builder.Logging.AddDebug();
-
-        return builder.Build();
-    }
+            return builder.Build();
+        }
+        
+            // .ConfigureTests(new TestOptions
+            // {
+            //     Assemblies =
+            //     {
+            //         typeof(MauiProgram).Assembly
+            //     }
+            // })
+            // .UseShiny() // this is somewhat of a hack as it hooks the shiny events BUT to the current host provider
 }
-
-
-//builder.Services.AddSingleton<IMauiInitializeService, ShinyMauiInitializationService>();
-//        builder.Services.AddShinyCoreServices();
-
-//        builder.ConfigureLifecycleEvents(events =>
-//        {
-//#if ANDROID
-//            events.AddAndroid(android => android
-//                // Shiny will supply app foreground/background events
-//                .OnRequestPermissionsResult((activity, requestCode, permissions, grantResults) => Host.Lifecycle.OnRequestPermissionsResult(activity, requestCode, permissions, grantResults))
-//                .OnActivityResult((activity, requestCode, result, intent) => Host.Lifecycle.OnActivityResult(activity, requestCode, result, intent))
-//                .OnNewIntent((activity, intent) => Host.Lifecycle.OnNewIntent(activity, intent))
-//            );
-//#elif APPLE
-//            // Shiny will supply push events & handle background url for http transfers
-//            events.AddiOS(ios => ios
-//                .FinishedLaunching((_, options) => Host.Lifecycle.FinishedLaunching(options))
-//                .ContinueUserActivity((_, activity, handler) => Host.Lifecycle.OnContinueUserActivity(activity, handler))
-//                .WillEnterForeground(_ => Host.Lifecycle.OnAppForegrounding())
-//                .DidEnterBackground(_ => Host.Lifecycle.OnAppBackgrounding())
-//            );
-//#elif WINDOWS
-//            events.AddWindows(win => win
-//                .OnLaunching((app, args) => { })
-//                .OnClosed((app, args) => { })
-//                .OnVisibilityChanged((app, args) => { })
-//            );
-//#endif
-//        });

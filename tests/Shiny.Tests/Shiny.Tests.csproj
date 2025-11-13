@@ -41,7 +41,10 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Debug"/>
         <PackageReference Include="Shouldly"/>
         <PackageReference Include="MartinCostello.Logging.XUnit"/>
-        <PackageReference Include="Shiny.Xunit.Runners.Maui" Version="1.0.0" />
+        <PackageReference Include="DeviceRunners.UITesting.Maui"/>
+        <PackageReference Include="DeviceRunners.UITesting.Xunit"/>
+        <PackageReference Include="DeviceRunners.VisualRunners.Maui"/>
+        <PackageReference Include="DeviceRunners.VisualRunners.Xunit"/>
     </ItemGroup>
 
     <ItemGroup>

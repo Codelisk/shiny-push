@@ -1,6 +1,6 @@
 ﻿global using Xunit;
 global using Xunit.Abstractions;
-global using FluentAssertions;
+global using Shouldly;
 global using Shiny;
 global using Microsoft.Extensions.DependencyInjection;
 global using System;

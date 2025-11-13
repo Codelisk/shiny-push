@@ -1,7 +1,8 @@
 using System;
+using System.IO;
+using System.Linq;
 using Foundation;
 using Microsoft.Extensions.DependencyInjection;
-using ObjCRuntime;
 using UIKit;
 
 namespace Shiny;
@@ -12,14 +13,17 @@ public static class IosShinyHost
     public static void Init(IServiceProvider serviceProvider)
     {
         ShinyHost.Init(serviceProvider);
+        AppData = new DirectoryInfo(NSSearchPath.GetDirectories(NSSearchPathDirectory.LibraryDirectory, NSSearchPathDomain.User).First());
     }
     
+    
+    public static DirectoryInfo AppData { get; private set; }
     
     public static bool IsSimulator =>
 #if MACCATALYST || MACOS
 	    false;
 #else
-        Runtime.Arch == Arch.SIMULATOR;
+        ObjCRuntime.Runtime.Arch == ObjCRuntime.Arch.SIMULATOR;
 #endif
 
     public static void OnRegisteredForRemoteNotifications(NSData deviceToken)

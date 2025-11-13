@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
@@ -13,16 +14,45 @@ namespace Shiny;
 
 public static class AndroidShinyHost
 {
+    static ILogger logger = null!;
+    
     public static void Init(Android.App.Application app, IServiceProvider serviceProvider)
     {
         ShinyHost.Init(serviceProvider);
         AppContext = app;
         AppData = new DirectoryInfo(app.FilesDir!.AbsolutePath);
+        logger = serviceProvider.GetRequiredService<ILogger<AndroidPlatform>>();
         
         if (lifecycleManager == null) 
         {
-            lifecycleManager = new AndroidLifecycleManager(app);
-            // TODO: hook events - don't depend on 3rd party hooks or allow it to happen internally
+            lifecycleManager = new AndroidLifecycleManager(
+                app,
+                foreground => { },
+            // await serviceProvider
+            //             .RunDelegates<IApplicationLifecycle>(x =>
+            //             {
+            //                 if (foreground)
+            //                     x.OnForeground();
+            //                 else
+            //                     x.OnBackground();
+            //
+            //                 return Task.CompletedTask;
+            //             }, logger)
+                 activityChanged =>
+                {
+                    switch (activityChanged.State)
+                    {
+                        case ActivityState.Created:
+                            // await serviceProvider
+                            //     .RunDelegates<IAndroidLifecycle.IOnActivityOnCreate>(
+                            //         x => x.ActivityOnCreate(activityChanged.Activity, activityChanged.StateBundle),
+                            //        logger
+                            //     )
+                            //     .ConfigureAwait(false);
+                            break;
+                    }
+                }
+            );
         }
     }
 
@@ -72,7 +102,8 @@ public static class AndroidShinyHost
      static void Execute<T>(Action<T> action)
      {
          var services = ShinyHost.ServiceProvider.GetServices<T>();
-         ShinyHost.ServiceProvider.GetService<ILogger<AndroidShinyHost>>();
+         var logger = ShinyHost.ServiceProvider.GetService<ILogger<AndroidPlatform>>();
+         
          foreach (var handler in services)
          {
              try
@@ -81,7 +112,7 @@ public static class AndroidShinyHost
              }
              catch (Exception ex)
              {
-                 //this.logger.LogError(ex, "Failed to execute lifecycle call");
+                 logger.LogError(ex, "Failed to execute lifecycle call");
              }
          }
      }
@@ -126,16 +157,6 @@ public static class AndroidShinyHost
     }
 }
 
-//     readonly Handler handler = new Handler(Looper.MainLooper);
-//     public void InvokeOnMainThread(Action action)
-//     {
-//         if (Looper.MainLooper.IsCurrentThread)
-//             action();
-//         else
-//             this.handler.Post(action);
-//     }
-//
-//
 //     public IObservable<ActivityChanged> WhenActivityStatusChanged() => Observable.Create<ActivityChanged>(ob =>
 //     {
 //         if (this.CurrentActivity != null)
@@ -149,7 +170,7 @@ public static class AndroidShinyHost
 //
 //     public async Task<AccessState> RequestForegroundServicePermissions()
 //     {
-//         if (OperatingSystemShim.IsAndroidVersionAtLeast(33))
+//         if (OperatingSystem.IsAndroidVersionAtLeast(33))
 //         {
 //             var results = await this.RequestPermissions(
 //                 Manifest.Permission.ForegroundService,
@@ -163,7 +184,7 @@ public static class AndroidShinyHost
 //
 //             return AccessState.Restricted; // no post_notifications
 //         }
-//         else if (OperatingSystemShim.IsAndroidVersionAtLeast(31))
+//         else if (OperatingSystem.IsAndroidVersionAtLeast(31))
 //         {
 //             var results = await this.RequestPermissions(Manifest.Permission.ForegroundService);
 //             if (results.IsSuccess())

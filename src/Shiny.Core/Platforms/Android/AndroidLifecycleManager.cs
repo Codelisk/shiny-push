@@ -10,12 +10,18 @@ namespace Shiny;
 public class AndroidLifecycleManager : Java.Lang.Object, Application.IActivityLifecycleCallbacks, ILifecycleObserver, IDisposable
 {
     readonly Application app;
-    readonly IServiceProvider services;
+    readonly Action<bool> appLifecycleChanged;
+    readonly Action<ActivityChanged> activityChanged;
     
-    public AndroidLifecycleManager(Application app, IServiceProvider services)
+    public AndroidLifecycleManager(
+        Application app, 
+        Action<bool> onAppLifecycleChanged,
+        Action<ActivityChanged> onActivityChanged
+    )
     {
         this.app = app;
-        this.services = services;
+        this.appLifecycleChanged = onAppLifecycleChanged;
+        this.activityChanged = onActivityChanged;
         
         this.app.RegisterActivityLifecycleCallbacks(this);
         ProcessLifecycleOwner.Get().Lifecycle.AddObserver(this);
@@ -34,22 +40,13 @@ public class AndroidLifecycleManager : Java.Lang.Object, Application.IActivityLi
 
     [Lifecycle.Event.OnResume]
     [Export]
-    public void OnResume()
-    {
-    }
-    //=> this.Execute(this.appHandlers, x => x.OnForeground());
+    public void OnResume() => this.appLifecycleChanged(true);
 
 
     [Lifecycle.Event.OnPause]
     [Export]
-    public void OnPause()
-    {
-        
-    }
+    public void OnPause() => this.appLifecycleChanged(false);
     
-    //=> this.Execute(this.appHandlers, x => x.OnBackground());
-    
-    // public Subject<ActivityChanged> ActivitySubject { get; } = new();
     readonly WeakReference<Activity?> current = new(null);
 
 
@@ -60,11 +57,7 @@ public class AndroidLifecycleManager : Java.Lang.Object, Application.IActivityLi
     }
 
 
-    void Fire(Activity activity, ActivityState state, Bundle? bundle = null)
-    {
-        
-    }
-//        => this.ActivitySubject.OnNext(new ActivityChanged(activity, state, bundle));
+    void Fire(Activity activity, ActivityState state, Bundle? bundle = null) => this.activityChanged.Invoke(new(activity, state, bundle));
 
 
     public void OnActivityCreated(Activity activity, Bundle? savedInstanceState)
@@ -95,19 +88,4 @@ public class AndroidLifecycleManager : Java.Lang.Object, Application.IActivityLi
     public void OnActivitySaveInstanceState(Activity activity, Bundle outState) => this.Fire(activity, ActivityState.SaveInstanceState, outState);
     public void OnActivityStarted(Activity activity) => this.Fire(activity, ActivityState.Started);
     public void OnActivityStopped(Activity activity) => this.Fire(activity, ActivityState.Stopped);
-    
-    //         // dispose is (should) only used by unit tests
-//         // this is really only need for unit tests - it will passthrough under normal circumstances
-//         this.platform.InvokeOnMainThread(() =>
-//         {
-//             try
-//             {
-//                 ProcessLifecycleOwner.Get().Lifecycle.RemoveObserver(this);
-//             }
-//             catch (Exception ex)
-//             {
-//                 this.logger.LogWarning(ex, "Could not remove lifecycle observer");
-//             }
-//         });
-    
 }
