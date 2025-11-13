@@ -5,7 +5,7 @@ public record PushAccessState(
     string? RegistrationToken
 )
 {
-    public static PushAccessState Denied { get; } = new PushAccessState(AccessState.Denied, null);
+    public static PushAccessState Denied { get; } = new(AccessState.Denied, null);
 
     public void Assert()
     {

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Foundation;
 using UIKit;
 using UserNotifications;
-using Shiny.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +18,6 @@ public class PushManager(
     ILogger<PushManager> logger,
     IPushProvider? provider = null
 ) : 
-    NotifyPropertyChanged,
     IApplePushManager,
     IIosLifecycle.IOnFinishedLaunching,
     IIosLifecycle.IRemoteNotifications,
@@ -32,20 +30,18 @@ public class PushManager(
     public IPushTagSupport? Tags => provider as IPushTagSupport;
 
 
-    string? registrationToken;
-    public string? RegistrationToken
-    {
-        get => this.registrationToken;
-        set => this.Set(ref this.registrationToken, value);
-    }
+    public string? RegistrationToken { get; private set; }
+    // {
+    //     get => this.registrationToken;
+    //     set => this.Set(ref this.registrationToken, value);
+    // }
 
 
-    string? nativeToken;
-    public string? NativeRegistrationToken
-    {
-        get => this.nativeToken;
-        set => this.Set(ref this.nativeToken, value);
-    }
+    public string? NativeRegistrationToken { get; private set; }
+    // {
+    //     get => this.nativeToken;
+    //     set => this.Set(ref this.nativeToken, value);
+    // }
 
 
     public void Start()
@@ -66,7 +62,7 @@ public class PushManager(
         //    "application:didFailToRegisterForRemoteNotificationsWithError:",
         //    "[SHINY] AppDelegate.FailedToRegisterForRemoteNotifications is not hooked. This is a necessary hook for Shiny Push"
         //);
-        if (this.RegistrationToken.IsEmpty())
+        if (String.IsNullOrWhiteSpace(this.RegistrationToken))
             return;
 
         this.RequestAccess()
@@ -91,7 +87,7 @@ public class PushManager(
 
     public async Task<PushAccessState> RequestAccess(UNAuthorizationOptions options, CancellationToken cancelToken = default)
     {
-        if (AppleExtensions.IsSimulator)
+        if (IosShinyHost.IsSimulator)
             return new PushAccessState(AccessState.NotSupported, null);
 
         var result = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(options);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using Android;
@@ -12,7 +11,6 @@ using Android.Runtime;
 using Firebase;
 using Firebase.Messaging;
 using Microsoft.Extensions.Logging;
-using Shiny.Hosting;
 
 namespace Shiny.Push;
 
@@ -80,7 +78,7 @@ public class PushManager : NotifyPropertyChanged,
         if (this.config.DefaultChannel == null)
             return;
 
-        using var nativeManager = this.platform.GetSystemService<NotificationManager>(Context.NotificationService);
+        using var nativeManager = AndroidShinyHost.GetSystemService<NotificationManager>(Context.NotificationService);
         var channel = nativeManager.GetNotificationChannel(this.config.DefaultChannel.Id);
         if (channel != null)
             nativeManager.DeleteNotificationChannel(channel.Id);
@@ -113,7 +111,7 @@ public class PushManager : NotifyPropertyChanged,
         try
         {
             // TODO: verify google signed in
-            if (OperatingSystemShim.IsAndroidVersionAtLeast(33))
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
             {
                 var access = await this.platform
                     .RequestAccess(Manifest.Permission.PostNotifications)
