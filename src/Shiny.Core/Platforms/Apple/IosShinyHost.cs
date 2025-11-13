@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Foundation;
@@ -25,6 +26,17 @@ public static class IosShinyHost
 #else
         ObjCRuntime.Runtime.Arch == ObjCRuntime.Arch.SIMULATOR;
 #endif
+
+    public static IDictionary<string, string> FromNsDictionary(this NSDictionary ns)
+    {
+        var dict = new Dictionary<string, string>();
+        if (ns != null)
+        {
+            foreach (var pair in ns)
+                dict.Add(pair.Key.ToString(), pair.Value.ToString());
+        }
+        return dict;
+    }
 
     public static void OnRegisteredForRemoteNotifications(NSData deviceToken)
         => Execute<IIosLifecycle.IRemoteNotifications>(x => x.OnRegistered(deviceToken));

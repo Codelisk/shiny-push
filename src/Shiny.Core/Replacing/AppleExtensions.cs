@@ -61,16 +61,7 @@
 //     }
 //
 //
-//     public static IDictionary<string, string> FromNsDictionary(this NSDictionary ns)
-//     {
-//         var dict = new Dictionary<string, string>();
-//         if (ns != null)
-//         {
-//             foreach (var pair in ns)
-//                 dict.Add(pair.Key.ToString(), pair.Value.ToString());
-//         }
-//         return dict;
-//     }
+
 //
 //
 //     public static NSDictionary ToNsDictionary(this IDictionary<string, string> dict)
