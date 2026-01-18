@@ -1,17 +1,13 @@
-﻿# Shiny v3 for .NET
+﻿# Shiny v4 for .NET (beta)
 <img src="https://github.com/shinyorg/shiny/raw/master/art/logo.png" width="100" /> 
 
 Shiny is a cross platform framework designed to make working with device services and background processes easy, testable, and consistent while bringing
 things like dependency injection & logging in a structured way to your code!
 
-## Supports
-* Xamarin iOS
-* Xamarin Android
-* .NET 8 for Android
-* .NET 8 for iOS
-* .NET 8 for MacCatalyst
-
 ## Features
+* Support .NET 10+ for Android, iOS, & MacCatalyst
+  * Integrates directly with .NET MAUI
+  * Has additional hosting libraries to help with .NET iOS & Android scenarios without MAUI
 * Handles all of the cruft like Permissions, main thread traversal, persistent storage and app restarts
 * Brings your infrastructure to the background
 * Provides logging to ensure you know when your services fail in the background 
