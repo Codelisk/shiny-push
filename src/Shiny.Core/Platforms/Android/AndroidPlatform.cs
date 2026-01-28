@@ -5,7 +5,7 @@ using Android.OS;
 namespace Shiny;
 
 
-public class AndroidPlatform : IPlatform
+public partial class AndroidPlatform : IPlatform
 {
     public DirectoryInfo AppData => AndroidShinyHost.AppData;
 
