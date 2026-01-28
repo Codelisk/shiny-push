@@ -1,9 +1,7 @@
-﻿#if PLATFORM
+﻿#if PLATFORM || __ANDROID__ || __IOS__ || __MACCATALYST__
 using Shiny.Push;
 using Microsoft.Extensions.DependencyInjection;
-#if ANDROID
 using Microsoft.Extensions.DependencyInjection.Extensions;
-#endif
 
 namespace Shiny;
 
@@ -17,9 +15,9 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddPush(this IServiceCollection services)
     {
-#if APPLE
-        // services.AddShinyService<PushManager>();
-#elif ANDROID
+#if APPLE || __IOS__ || __MACCATALYST__
+        services.TryAddSingleton<IPushManager, PushManager>();
+#elif ANDROID || __ANDROID__
         services.AddPush(new FirebaseConfig());
 #endif
         return services;
@@ -27,35 +25,35 @@ public static class ServiceCollectionExtensions
 
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <typeparam name="TDelegate"></typeparam>
     /// <param name="services"></param>
     /// <returns></returns>
     public static IServiceCollection AddPush<TDelegate>(this IServiceCollection services) where TDelegate : class, IPushDelegate
     {
-        // services.AddShinyService<TDelegate>();
+        services.TryAddSingleton<IPushDelegate, TDelegate>();
         return services.AddPush();
     }
 
-#if ANDROID
+#if ANDROID || __ANDROID__
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="services"></param>
     /// <param name="config"></param>
     /// <returns></returns>
     public static IServiceCollection AddPush(this IServiceCollection services, FirebaseConfig config)
     {
-        services.AddSingleton(config);
-        // services.AddShinyService<PushManager>();
+        services.TryAddSingleton(config);
+        services.TryAddSingleton<IPushManager, PushManager>();
         return services;
     }
 
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <typeparam name="TDelegate"></typeparam>
     /// <param name="services"></param>
@@ -63,9 +61,9 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddPush<TDelegate>(this IServiceCollection services, FirebaseConfig config)
         where TDelegate : class, IPushDelegate
-    {        
-        // services.AddShinyService<TDelegate>();
-        services.AddPush(config);   
+    {
+        services.TryAddSingleton<IPushDelegate, TDelegate>();
+        services.AddPush(config);
         return services;
     }
 #endif

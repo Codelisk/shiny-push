@@ -74,6 +74,39 @@ public static class ShinyExtensions
     public static Lazy<T> GetLazyService<T>(this IServiceProvider services, bool required = false)
         => new(() => required ? services.GetRequiredService<T>() : services.GetService<T>());
 
+    /// <summary>
+    /// This will add the implementation for ALL of its interfaces as a singleton
+    /// </summary>
+    /// <typeparam name="TImpl"></typeparam>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddShinyService<TImpl>(this IServiceCollection services) where TImpl : class
+        => services.AddShinyService(typeof(TImpl));
+
+    /// <summary>
+    /// This will add the implementation for ALL of its interfaces as a singleton
+    /// </summary>
+    /// <param name="implementationType"></param>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddShinyService(this IServiceCollection services, Type implementationType)
+    {
+        var interfaces = implementationType
+            .GetInterfaces()
+            .Where(x => x != typeof(IDisposable) &&
+                       !x.Name.StartsWith("INotify") &&
+                       x.Namespace?.StartsWith("System") != true)
+            .ToList();
+
+        services.AddSingleton(implementationType);
+
+        foreach (var iface in interfaces)
+        {
+            services.AddSingleton(iface, sp => sp.GetRequiredService(implementationType));
+        }
+        return services;
+    }
+
     // /// <summary>
     // /// This will add the implementation for ALL of its interfaces and create a persistent storage binding if INotifyPropertyChanged is implemented
     // /// </summary>

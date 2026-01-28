@@ -12,6 +12,7 @@ public static class ShinyHost
     
     public static void Init(IServiceProvider serviceProvider)
     {
+        ServiceProvider = serviceProvider;
         // //Current = new Host(serviceProvider, loggerFactory);
         //
         // var tasks = this.Services.GetServices<IShinyStartupTask>();
@@ -26,9 +27,9 @@ public static class ShinyHost
         // }
         // Host.Current = this;
     }
-    
-    
-    public static bool IsInitialized => false;
+
+
+    public static bool IsInitialized => ServiceProvider != null;
     public static IServiceProvider ServiceProvider { get; private set; }
     public static ILoggerFactory LoggingFactory { get; private set; }
 }

@@ -4,6 +4,8 @@
         <Owners>aritchie;shinylib</Owners>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
+        <!-- Override TreatWarningsAsErrors from root Directory.Build.props -->
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <DisableExtraReferences>False</DisableExtraReferences>
         <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
         <Description>Shiny</Description>
@@ -24,10 +26,10 @@
         <!-- Uno-compatible TargetFrameworks -->
         <WindowsTarget Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0-windows10.0.26100</WindowsTarget>
         <StandardTargetFrameworks>net10.0</StandardTargetFrameworks>
-        <IosTargetFrameworks>net10.0-ios18.5</IosTargetFrameworks>
+        <IosTargetFrameworks>net10.0-ios18.0</IosTargetFrameworks>
         <AndroidTargetFrameworks>net10.0-android36.0</AndroidTargetFrameworks>
         <DesktopTargetFrameworks>net10.0-desktop</DesktopTargetFrameworks>
-        <AppleTargetFrameworks>$(IosTargetFrameworks);net10.0-maccatalyst18.5</AppleTargetFrameworks>
+        <AppleTargetFrameworks>$(IosTargetFrameworks);net10.0-maccatalyst18.0</AppleTargetFrameworks>
         <PlatformOnlyTargetFrameworks>$(AppleTargetFrameworks);$(AndroidTargetFrameworks)</PlatformOnlyTargetFrameworks>
         <DefaultMobileTargetFrameworks>$(StandardTargetFrameworks);$(IosTargetFrameworks);$(AndroidTargetFrameworks)</DefaultMobileTargetFrameworks>
         <DefaultTargetFrameworks>$(StandardTargetFrameworks);$(PlatformOnlyTargetFrameworks)</DefaultTargetFrameworks>

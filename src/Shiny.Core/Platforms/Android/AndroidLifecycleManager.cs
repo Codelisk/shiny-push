@@ -56,6 +56,11 @@ public class AndroidLifecycleManager : Java.Lang.Object, Application.IActivityLi
         private set => this.current.SetTarget(value);
     }
 
+    /// <summary>
+    /// Manually sets the current activity. Used when Init is called after the activity was already created.
+    /// </summary>
+    public void SetCurrentActivity(Activity activity) => this.Activity = activity;
+
 
     void Fire(Activity activity, ActivityState state, Bundle? bundle = null) => this.activityChanged.Invoke(new(activity, state, bundle));
 

@@ -16,14 +16,14 @@ public static class AndroidShinyHost
 {
     static ILogger logger = null!;
     
-    public static void Init(Android.App.Application app, IServiceProvider serviceProvider)
+    public static void Init(Android.App.Application app, IServiceProvider serviceProvider, Activity? currentActivity = null)
     {
         ShinyHost.Init(serviceProvider);
         AppContext = app;
         AppData = new DirectoryInfo(app.FilesDir!.AbsolutePath);
         logger = serviceProvider.GetRequiredService<ILogger<AndroidPlatform>>();
-        
-        if (lifecycleManager == null) 
+
+        if (lifecycleManager == null)
         {
             lifecycleManager = new AndroidLifecycleManager(
                 app,
@@ -53,6 +53,12 @@ public static class AndroidShinyHost
                     }
                 }
             );
+        }
+
+        // Set the current activity if provided (for when Init is called after activity creation)
+        if (currentActivity != null)
+        {
+            lifecycleManager.SetCurrentActivity(currentActivity);
         }
     }
 
@@ -101,9 +107,13 @@ public static class AndroidShinyHost
     
      static void Execute<T>(Action<T> action)
      {
+         // Skip if Shiny hasn't been initialized yet
+         if (!ShinyHost.IsInitialized)
+             return;
+
          var services = ShinyHost.ServiceProvider.GetServices<T>();
          var logger = ShinyHost.ServiceProvider.GetService<ILogger<AndroidPlatform>>();
-         
+
          foreach (var handler in services)
          {
              try
@@ -112,7 +122,7 @@ public static class AndroidShinyHost
              }
              catch (Exception ex)
              {
-                 logger.LogError(ex, "Failed to execute lifecycle call");
+                 logger?.LogError(ex, "Failed to execute lifecycle call");
              }
          }
      }

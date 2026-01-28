@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -32,7 +34,7 @@ public abstract class ShinyAndroidForegroundService : Service
     protected virtual ForegroundService StartForegroundServiceType => ForegroundService.TypeNone;
     protected T GetService<T>() => ShinyHost.ServiceProvider.GetService<T>()!;
     protected IEnumerable<T> GetServices<T>() => ShinyHost.ServiceProvider.GetServices<T>();
-    // protected CompositeDisposable? DestroyWith { get; private set; }
+    protected CompositeDisposable? DestroyWith { get; private set; }
     protected NotificationManagerCompat? NotificationManager { get; private set; }
     protected bool StopWithTask { get; private set; }
 
@@ -78,9 +80,8 @@ public abstract class ShinyAndroidForegroundService : Service
 
     protected virtual void Start(Intent? intent)
     {
-        
-        //this.NotificationManager = NotificationManagerCompat.From(this.Platform.AppContext);
-        // this.DestroyWith = new CompositeDisposable();
+        this.NotificationManager = NotificationManagerCompat.From(AndroidShinyHost.AppContext);
+        this.DestroyWith = new CompositeDisposable();
 
         this.EnsureChannel();
         this.Builder = this.CreateNotificationBuilder();
@@ -99,8 +100,8 @@ public abstract class ShinyAndroidForegroundService : Service
     protected void Stop()
     {
         this.Logger.LogDebug($"Calling for foreground service stop.  Notification ID: {this.NotificationId}");
-        // this.DestroyWith?.Dispose();
-        // this.DestroyWith = null;
+        this.DestroyWith?.Dispose();
+        this.DestroyWith = null;
 
         ServiceCompat.StopForeground(this, ServiceCompat.StopForegroundRemove);
         this.StopSelf();
