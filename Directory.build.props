@@ -26,10 +26,10 @@
         <!-- Uno-compatible TargetFrameworks -->
         <WindowsTarget Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0-windows10.0.26100</WindowsTarget>
         <StandardTargetFrameworks>net10.0</StandardTargetFrameworks>
-        <IosTargetFrameworks>net10.0-ios18.0</IosTargetFrameworks>
+        <IosTargetFrameworks>net10.0-ios26.0</IosTargetFrameworks>
         <AndroidTargetFrameworks>net10.0-android36.0</AndroidTargetFrameworks>
         <DesktopTargetFrameworks>net10.0-desktop</DesktopTargetFrameworks>
-        <AppleTargetFrameworks>$(IosTargetFrameworks);net10.0-maccatalyst18.0</AppleTargetFrameworks>
+        <AppleTargetFrameworks>$(IosTargetFrameworks);net10.0-maccatalyst26.0</AppleTargetFrameworks>
         <PlatformOnlyTargetFrameworks>$(AppleTargetFrameworks);$(AndroidTargetFrameworks)</PlatformOnlyTargetFrameworks>
         <DefaultMobileTargetFrameworks>$(StandardTargetFrameworks);$(IosTargetFrameworks);$(AndroidTargetFrameworks)</DefaultMobileTargetFrameworks>
         <DefaultTargetFrameworks>$(StandardTargetFrameworks);$(PlatformOnlyTargetFrameworks)</DefaultTargetFrameworks>
@@ -37,7 +37,7 @@
 
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <IncludeSource>True</IncludeSource>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>True</PublishRepositoryUrl>

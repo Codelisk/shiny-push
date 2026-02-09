@@ -7,7 +7,7 @@ using Foundation;
 using UIKit;
 using UserNotifications;
 using CoreLocation;
-using Shiny.Hosting;
+// using Shiny.Hosting; - Types moved to Shiny namespace
 using Shiny.Extensions.Stores;
 using Microsoft.Extensions.Logging;
 
@@ -170,7 +170,7 @@ public class NotificationManager : INotificationManager, IIosLifecycle.INotifica
             if (apple.Subtitle != null)
                 content.Subtitle = apple.Subtitle;
             
-            if (OperatingSystem.IsAppleVersionAtleast(16))
+            if (ApplePlatformExtensions.IsAppleVersionAtLeast(16))
             {
                 content.FilterCriteria = apple.FilterCriteria;
                 content.RelevanceScore = apple.RelevanceScore;
@@ -186,7 +186,7 @@ public class NotificationManager : INotificationManager, IIosLifecycle.INotifica
 
     protected virtual void ApplyChannel(Notification notification, Channel channel, UNMutableNotificationContent native)
     {
-        if (OperatingSystem.IsAppleVersionAtleast(15))
+        if (ApplePlatformExtensions.IsAppleVersionAtLeast(15))
         {
             native.InterruptionLevel = channel.Importance switch
             {
@@ -242,7 +242,7 @@ public class NotificationManager : INotificationManager, IIosLifecycle.INotifica
             {
                 case ChannelImportance.Critical:
                 case ChannelImportance.High:
-                    var is12 = OperatingSystem.IsAppleVersionAtleast(12);
+                    var is12 = OperatingSystem.IsIOSVersionAtLeast(12) || OperatingSystem.IsMacCatalystVersionAtLeast(12);
                     native.Sound = this.configuration.UNAuthorizationOptions.HasFlag(UNAuthorizationOptions.CriticalAlert) && is12
                         ? UNNotificationSound.DefaultCriticalSound
                         : UNNotificationSound.Default;
