@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Foundation;
 using Shiny.Locations;
 using UserNotifications;
 
@@ -7,6 +9,36 @@ namespace Shiny.Notifications;
 
 public static class ApplePlatformExtensions
 {
+    // .NET 10 compatibility helper - IsAppleVersionAtleast was removed
+    internal static bool IsAppleVersionAtLeast(int major, int minor = 0, int build = 0)
+        => OperatingSystem.IsIOSVersionAtLeast(major, minor, build) ||
+           OperatingSystem.IsMacCatalystVersionAtLeast(major, minor, build);
+
+    // NSDate.ToDateTime() extension was removed in .NET 10
+    internal static DateTime ToDateTime(this NSDate nsDate)
+    {
+        var reference = new DateTime(2001, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        return reference.AddSeconds(nsDate.SecondsSinceReferenceDate).ToLocalTime();
+    }
+
+    // IDictionary<string,string>.ToNsDictionary() extension was removed in .NET 10
+    internal static NSDictionary ToNsDictionary(this IDictionary<string, string> dictionary)
+    {
+        if (dictionary == null || dictionary.Count == 0)
+            return new NSDictionary();
+
+        var keys = new NSString[dictionary.Count];
+        var values = new NSString[dictionary.Count];
+        var i = 0;
+        foreach (var kvp in dictionary)
+        {
+            keys[i] = new NSString(kvp.Key);
+            values[i] = new NSString(kvp.Value ?? string.Empty);
+            i++;
+        }
+        return NSDictionary.FromObjectsAndKeys(values, keys);
+    }
+
     public static AppleNotification FromNative(this UNNotificationRequest native)
     {
         var id = 0;
@@ -25,7 +57,7 @@ public static class ApplePlatformExtensions
         };
 
 
-        if (OperatingSystem.IsAppleVersionAtleast(16))
+        if (IsAppleVersionAtLeast(16))
         {
             if (native.Content?.RelevanceScore > 0)
                 shiny.RelevanceScore = native.Content!.RelevanceScore!;
