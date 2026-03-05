@@ -16,7 +16,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPush(this IServiceCollection services)
     {
 #if APPLE || __IOS__ || __MACCATALYST__
-        services.TryAddSingleton<IPushManager, PushManager>();
+        services.TryAddSingleton<PushManager>();
+        services.TryAddSingleton<IPushManager>(sp => sp.GetRequiredService<PushManager>());
+        services.AddSingleton<IIosLifecycle.IRemoteNotifications>(sp => sp.GetRequiredService<PushManager>());
 #elif ANDROID || __ANDROID__
         services.AddPush(new FirebaseConfig());
 #endif
